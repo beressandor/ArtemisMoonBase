@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Artemis Moon Base",
+    "slug": "artemis-moon-base",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "artemismoonbase",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "experiments": {
+      "typedRoutes": true
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "extra": {
+      "supabaseUrl": "",
+      "supabaseAnonKey": ""
+    }
+  }
+}
