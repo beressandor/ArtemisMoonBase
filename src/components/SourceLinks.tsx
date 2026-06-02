@@ -1,7 +1,8 @@
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { ExternalLink } from "lucide-react-native";
+import { useTranslation } from "@/lib/i18n";
 import { colors, spacing, typography } from "@/lib/theme";
-import { sourceConfidenceLabel, uniqueSources } from "@/lib/sourceAttribution";
+import { uniqueSources } from "@/lib/sourceAttribution";
 import type { SourceLink } from "@/lib/types";
 
 interface SourceLinksProps {
@@ -9,6 +10,7 @@ interface SourceLinksProps {
 }
 
 export function SourceLinks({ sources }: SourceLinksProps) {
+  const { t } = useTranslation();
   const unique = uniqueSources(sources);
 
   if (unique.length === 0) {
@@ -23,7 +25,7 @@ export function SourceLinks({ sources }: SourceLinksProps) {
           <Text numberOfLines={1} style={styles.label}>
             {source.label}
           </Text>
-          <Text style={styles.meta}>{sourceConfidenceLabel(source)}</Text>
+          <Text style={styles.meta}>{t(`source.${source.confidence}`)}</Text>
         </Pressable>
       ))}
     </View>

@@ -22,6 +22,7 @@ type DbMission = {
   date_label: string;
   starts_at?: string | null;
   date_precision: Mission["datePrecision"];
+  classification_label?: string | null;
   summary: string;
   objectives: string[];
   landing_region?: string | null;
@@ -152,6 +153,7 @@ export const listMissions = (): Promise<Mission[]> =>
       dateLabel: mission.date_label,
       startsAt: mission.starts_at ?? undefined,
       datePrecision: mission.date_precision,
+      classificationLabel: mission.classification_label ?? undefined,
       summary: mission.summary,
       objectives: mission.objectives ?? [],
       equipmentIds: [],
@@ -252,8 +254,7 @@ export const getDashboardData = async (): Promise<DashboardData> => {
     metrics: [
       { label: "Programs", value: "5", tone: "blue" },
       { label: "Tracked missions", value: String(allMissions.length), tone: "green" },
-      { label: "Equipment", value: String(allEquipment.length), tone: "gold" },
-      { label: "Live feeds", value: String(allLiveLinks.length), tone: "blue" }
+      { label: "Equipment", value: String(allEquipment.length), tone: "gold" }
     ]
   };
 };
@@ -267,7 +268,9 @@ export const searchAll = async (query: string) => {
   }
 
   return {
-    missions: allMissions.filter((mission) => `${mission.title} ${mission.summary}`.toLowerCase().includes(value)),
+    missions: allMissions.filter((mission) =>
+      `${mission.title} ${mission.classificationLabel ?? ""} ${mission.summary}`.toLowerCase().includes(value)
+    ),
     equipment: allEquipment.filter((item) => `${item.name} ${item.summary} ${item.owner}`.toLowerCase().includes(value)),
     events: allEvents.filter((event) => `${event.title} ${event.summary}`.toLowerCase().includes(value))
   };

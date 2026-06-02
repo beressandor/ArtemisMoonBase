@@ -7,6 +7,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 type Extra = {
   supabaseUrl?: string;
+  supabasePublishableKey?: string;
   supabaseAnonKey?: string;
 };
 
@@ -15,12 +16,17 @@ const runtimeEnv =
   (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {};
 
 const supabaseUrl = runtimeEnv.EXPO_PUBLIC_SUPABASE_URL || extra.supabaseUrl || "";
-const supabaseAnonKey = runtimeEnv.EXPO_PUBLIC_SUPABASE_ANON_KEY || extra.supabaseAnonKey || "";
+const supabasePublishableKey =
+  runtimeEnv.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  runtimeEnv.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
+  extra.supabasePublishableKey ||
+  extra.supabaseAnonKey ||
+  "";
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey);
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, {
+  ? createClient(supabaseUrl, supabasePublishableKey, {
       auth: {
         storage: AsyncStorage,
         autoRefreshToken: true,

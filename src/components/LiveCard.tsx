@@ -1,6 +1,7 @@
 import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
-import { Activity, ExternalLink, Radio, Satellite } from "lucide-react-native";
-import { colors, spacing, typography } from "@/lib/theme";
+import { Activity, Radio, Satellite } from "lucide-react-native";
+import { useTranslation } from "@/lib/i18n";
+import { colors, radius, spacing, typography } from "@/lib/theme";
 import type { LiveLink } from "@/lib/types";
 import { Panel } from "@/components/Panel";
 import { StatusPill } from "@/components/StatusPill";
@@ -18,47 +19,64 @@ const icons = {
 
 export function LiveCard({ item }: LiveCardProps) {
   const Icon = icons[item.type];
+  const { t } = useTranslation();
 
   return (
-    <Panel>
-      <View style={styles.header}>
+    <Panel style={styles.card}>
+      <View style={styles.row}>
         <View style={styles.icon}>
-          <Icon color={colors.blue} size={20} />
+          <Icon color={colors.blue} size={18} />
         </View>
-        <View style={styles.titleBlock}>
-          <Text style={styles.provider}>{item.provider}</Text>
+        <View style={styles.copyBlock}>
+          <View style={styles.metaRow}>
+            <Text style={styles.provider}>{item.provider}</Text>
+            <StatusPill status={item.status} />
+          </View>
           <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.summary}>{item.summary}</Text>
         </View>
-        <StatusPill status={item.status} />
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel={`${t("live.open")} ${item.title}`}
+          style={styles.action}
+          onPress={() => Linking.openURL(item.url)}
+        >
+          <Text style={styles.actionText}>{t("live.open")}</Text>
+        </Pressable>
       </View>
-      <Text style={styles.summary}>{item.summary}</Text>
-      <Pressable style={styles.action} onPress={() => Linking.openURL(item.url)}>
-        <ExternalLink color={colors.background} size={16} />
-        <Text style={styles.actionText}>Open live source</Text>
-      </Pressable>
     </Panel>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    alignItems: "center",
+  card: {
+    padding: spacing.md
+  },
+  row: {
+    alignItems: "flex-start",
     flexDirection: "row",
     gap: spacing.md
   },
   icon: {
     alignItems: "center",
-    backgroundColor: colors.backgroundSoft,
-    borderColor: colors.borderSoft,
-    borderRadius: 8,
+    backgroundColor: "rgba(138, 232, 255, 0.1)",
+    borderColor: "rgba(138, 232, 255, 0.28)",
+    borderRadius: radius.sm,
     borderWidth: 1,
-    height: 40,
+    height: 36,
     justifyContent: "center",
-    width: 40
+    width: 36
   },
-  titleBlock: {
+  copyBlock: {
     flex: 1,
-    gap: 2
+    gap: spacing.xs,
+    minWidth: 0
+  },
+  metaRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm
   },
   provider: {
     ...typography.small,
@@ -74,15 +92,16 @@ const styles = StyleSheet.create({
   },
   action: {
     alignItems: "center",
-    backgroundColor: colors.white,
-    borderRadius: 8,
-    flexDirection: "row",
-    gap: spacing.sm,
+    backgroundColor: colors.panelGlass,
+    borderColor: "rgba(138, 232, 255, 0.32)",
+    borderWidth: 1,
+    borderRadius: radius.sm,
     justifyContent: "center",
-    minHeight: 42
+    minHeight: 34,
+    paddingHorizontal: spacing.md
   },
   actionText: {
     ...typography.small,
-    color: colors.background
+    color: colors.blue
   }
 });

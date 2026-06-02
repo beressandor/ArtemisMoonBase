@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireSyncSecret } from "../_shared/auth.ts";
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 
 interface NasaImageItem {
@@ -47,6 +48,11 @@ Deno.serve(async (request) => {
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
+  const unauthorized = await requireSyncSecret(request, supabase);
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const { data: run } = await supabase
     .from("sync_runs")
     .insert({ source_id: "nasa-images", status: "started" })
@@ -56,7 +62,7 @@ Deno.serve(async (request) => {
   try {
     const { data: equipment = [], error } = await supabase
       .from("equipment")
-      .select("id, name, image_query")
+      .select("id, name, image_query, image_url")
       .order("name");
 
     if (error) {
@@ -91,14 +97,16 @@ Deno.serve(async (request) => {
         { onConflict: "entity_type,entity_id,provider,image_url" }
       );
 
-      await supabase
-        .from("equipment")
-        .update({
-          image_url: imageUrl,
-          last_synced_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", item.id);
+      if (!item.image_url) {
+        await supabase
+          .from("equipment")
+          .update({
+            image_url: imageUrl,
+            last_synced_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", item.id);
+      }
 
       await supabase.from("source_records").upsert(
         {

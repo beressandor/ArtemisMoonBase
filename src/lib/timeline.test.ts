@@ -36,6 +36,11 @@ describe("timeline utilities", () => {
 
   it("sorts roadmap items by best available schedule", () => {
     const items = sortTimelineItems(buildTimelineItems(missions, missionEvents, equipment));
-    expect(items[0].mission.id).toBe("moon-base-phase-one");
+    const viperIndex = items.findIndex((item) => item.mission.id === "viper-moon-base");
+    const moonBaseOneIndex = items.findIndex((item) => item.mission.id === "moon-base-i");
+    const moonBaseTwoIndex = items.findIndex((item) => item.mission.id === "moon-base-ii");
+
+    expect(viperIndex).toBeLessThan(moonBaseTwoIndex);
+    expect(moonBaseOneIndex).toBeLessThan(moonBaseTwoIndex);
   });
 });

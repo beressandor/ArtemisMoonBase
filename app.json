@@ -2,7 +2,7 @@
   "expo": {
     "name": "Artemis Moon Base",
     "slug": "artemis-moon-base",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "orientation": "portrait",
     "scheme": "artemismoonbase",
     "userInterfaceStyle": "dark",
@@ -13,9 +13,23 @@
     "plugins": [
       "expo-router"
     ],
+    "android": {
+      "package": "com.beressandor.artemismoonbase",
+      "versionCode": 2,
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "INTERNET"
+      ]
+    },
     "extra": {
       "supabaseUrl": "",
-      "supabaseAnonKey": ""
-    }
+      "supabasePublishableKey": "",
+      "supabaseAnonKey": "",
+      "router": {},
+      "eas": {
+        "projectId": "75db7d8a-995a-4703-9cd7-e55efdb6115d"
+      }
+    },
+    "owner": "beres.sandor9112"
   }
 }

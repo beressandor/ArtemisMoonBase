@@ -87,6 +87,7 @@ export interface Mission {
   dateLabel: string;
   startsAt?: string;
   datePrecision: DatePrecision;
+  classificationLabel?: string;
   summary: string;
   objectives: string[];
   equipmentIds: string[];

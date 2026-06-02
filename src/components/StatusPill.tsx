@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
+import { useTranslation } from "@/lib/i18n";
 import { colors, radius, spacing, statusColor, typography } from "@/lib/theme";
 import type { MissionStatus } from "@/lib/types";
 
@@ -6,23 +7,14 @@ interface StatusPillProps {
   status: MissionStatus;
 }
 
-const labels: Record<MissionStatus, string> = {
-  active: "Active",
-  completed: "Complete",
-  delayed: "Delayed",
-  "in-development": "In development",
-  planned: "Planned",
-  scheduled: "Scheduled",
-  watch: "Watch"
-};
-
 export function StatusPill({ status }: StatusPillProps) {
   const color = statusColor[status];
+  const { t } = useTranslation();
 
   return (
     <View style={[styles.pill, { borderColor: color }]}>
       <View style={[styles.dot, { backgroundColor: color }]} />
-      <Text style={styles.text}>{labels[status]}</Text>
+      <Text style={styles.text}>{t(`status.${status}`)}</Text>
     </View>
   );
 }
@@ -31,7 +23,7 @@ const styles = StyleSheet.create({
   pill: {
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: colors.backgroundSoft,
+    backgroundColor: colors.panelGlass,
     borderRadius: radius.sm,
     borderWidth: 1,
     flexDirection: "row",

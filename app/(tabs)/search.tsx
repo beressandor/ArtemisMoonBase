@@ -8,16 +8,18 @@ import { EmptyState } from "@/components/EmptyState";
 import { Panel } from "@/components/Panel";
 import { Screen } from "@/components/Screen";
 import { searchAll } from "@/lib/dataClient";
+import { useTranslation } from "@/lib/i18n";
 import { colors, radius, spacing, typography } from "@/lib/theme";
 
 export default function SearchScreen() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const { data } = useQuery({ queryKey: ["search", query], queryFn: () => searchAll(query) });
   const total = (data?.missions.length ?? 0) + (data?.equipment.length ?? 0) + (data?.events.length ?? 0);
 
   return (
     <Screen>
-      <AppHeader title="Search" />
+      <AppHeader title={t("search.title")} />
       <View style={styles.searchBox}>
         <SearchIcon color={colors.textDim} size={18} />
         <TextInput
@@ -25,18 +27,18 @@ export default function SearchScreen() {
           onChangeText={setQuery}
           autoCapitalize="none"
           autoCorrect={false}
-          placeholder="Search missions, equipment, sources"
+          placeholder={t("search.placeholder")}
           placeholderTextColor={colors.textDim}
           style={styles.input}
         />
       </View>
 
-      {total === 0 ? <EmptyState title="No results" message="Try Artemis, rover, Gateway, SLS, or lander." /> : null}
+      {total === 0 ? <EmptyState title={t("search.noResults")} message={t("search.noResultsMessage")} /> : null}
 
       {data?.missions.map((mission) => (
         <Pressable key={mission.id} onPress={() => router.push({ pathname: "/mission/[id]", params: { id: mission.id } })}>
           <Panel>
-            <Text style={styles.kicker}>Mission</Text>
+            <Text style={styles.kicker}>{t("search.mission")}</Text>
             <Text style={styles.title}>{mission.title}</Text>
             <Text numberOfLines={2} style={styles.summary}>
               {mission.summary}
@@ -48,7 +50,7 @@ export default function SearchScreen() {
       {data?.equipment.map((item) => (
         <Pressable key={item.id} onPress={() => router.push({ pathname: "/equipment/[id]", params: { id: item.id } })}>
           <Panel>
-            <Text style={styles.kicker}>Equipment</Text>
+            <Text style={styles.kicker}>{t("search.equipment")}</Text>
             <Text style={styles.title}>{item.name}</Text>
             <Text numberOfLines={2} style={styles.summary}>
               {item.summary}
@@ -59,7 +61,9 @@ export default function SearchScreen() {
 
       {data?.events.map((event) => (
         <Panel key={event.id}>
-          <Text style={styles.kicker}>Event · {event.dateLabel}</Text>
+          <Text style={styles.kicker}>
+            {t("search.event")} / {event.dateLabel}
+          </Text>
           <Text style={styles.title}>{event.title}</Text>
           <Text numberOfLines={2} style={styles.summary}>
             {event.summary}

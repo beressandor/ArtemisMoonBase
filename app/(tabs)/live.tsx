@@ -7,21 +7,20 @@ import { LiveCard } from "@/components/LiveCard";
 import { Panel } from "@/components/Panel";
 import { Screen } from "@/components/Screen";
 import { listLiveLinks } from "@/lib/dataClient";
+import { useTranslation } from "@/lib/i18n";
 import { colors, radius, spacing, typography } from "@/lib/theme";
 
 export default function LiveScreen() {
+  const { t } = useTranslation();
   const { data = [], isLoading } = useQuery({ queryKey: ["live-links"], queryFn: listLiveLinks });
   const trackingPreview = useMemo(() => data.find((link) => link.isEmbedSafe && link.type === "tracking"), [data]);
 
   return (
     <Screen>
-      <AppHeader title="Live Center" />
+      <AppHeader title={t("live.title")} />
       <Panel elevated>
-        <Text style={styles.title}>Streams, countdowns, and tracking</Text>
-        <Text style={styles.copy}>
-          Live telemetry is only shown when NASA publishes an official public source. AROW and DSN are linked as context instead of
-          simulated data.
-        </Text>
+        <Text style={styles.title}>{t("live.heading")}</Text>
+        <Text style={styles.copy}>{t("live.copy")}</Text>
       </Panel>
 
       {trackingPreview ? (

@@ -14,9 +14,12 @@ const toneColor: Record<DashboardData["metrics"][number]["tone"], string> = {
 };
 
 export function MetricTile({ metric }: MetricTileProps) {
+  const color = toneColor[metric.tone];
+
   return (
     <View style={styles.tile}>
-      <Text style={[styles.value, { color: toneColor[metric.tone] }]}>{metric.value}</Text>
+      <View style={[styles.accent, { backgroundColor: color }]} />
+      <Text style={[styles.value, { color }]}>{metric.value}</Text>
       <Text numberOfLines={1} style={styles.label}>
         {metric.label}
       </Text>
@@ -26,14 +29,23 @@ export function MetricTile({ metric }: MetricTileProps) {
 
 const styles = StyleSheet.create({
   tile: {
-    backgroundColor: colors.panel,
+    backgroundColor: colors.panelGlass,
     borderColor: colors.borderSoft,
     borderRadius: radius.sm,
     borderWidth: 1,
     flex: 1,
     minHeight: 78,
     minWidth: 138,
+    overflow: "hidden",
     padding: spacing.md
+  },
+  accent: {
+    height: 2,
+    left: 0,
+    opacity: 0.86,
+    position: "absolute",
+    right: 0,
+    top: 0
   },
   value: {
     fontSize: 24,

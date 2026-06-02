@@ -1,16 +1,15 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireSyncSecret } from "../_shared/auth.ts";
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 import {
   isLunarProgram,
-  normalizeLaunchLibraryEvent,
   normalizeLaunchLibraryLaunch,
-  type LL2EventLike,
   type LL2LaunchLike,
   type NormalizedExternalEvent
 } from "../_shared/launchLibrary.ts";
 
 const LL2_BASE = "https://ll.thespacedevs.com/2.3.0";
-const SEARCH_TERMS = ["Artemis", "Gateway", "CLPS", "Moon", "Lunar", "Orion", "SLS", "Starship"];
+const LUNAR_MATCHER = /artemis|gateway|clps|moon|lunar|orion|sls|starship|nova-c|griffin|blue ghost|intuitive machines|astrobotic/i;
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -23,64 +22,34 @@ const fetchJson = async <T>(path: string): Promise<T> => {
   });
 
   if (!response.ok) {
-    throw new Error(`Launch Library request failed: ${response.status} ${response.statusText}`);
+    throw new Error(`Launch Library request failed for ${path}: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
 };
 
-const fetchJsonWithFallback = async <T>(paths: string[]): Promise<T> => {
-  let lastError: unknown;
+const isRelevantLaunch = (launch: LL2LaunchLike): boolean => {
+  const searchable = [
+    launch.name,
+    launch.mission?.name ?? "",
+    launch.mission?.description ?? "",
+    launch.launch_service_provider?.name ?? "",
+    launch.rocket?.configuration?.name ?? "",
+    launch.rocket?.configuration?.full_name ?? "",
+    ...(launch.program?.map((program) => program.name ?? "") ?? [])
+  ]
+    .join(" ")
+    .toLowerCase();
 
-  for (const path of paths) {
-    try {
-      return await fetchJson<T>(path);
-    } catch (error) {
-      lastError = error;
-    }
-  }
-
-  throw lastError instanceof Error ? lastError : new Error("Launch Library request failed.");
+  return isLunarProgram(launch.program) || LUNAR_MATCHER.test(searchable);
 };
 
 const collectLaunches = async (): Promise<LL2LaunchLike[]> => {
-  const byId = new Map<string, LL2LaunchLike>();
+  const data = await fetchJson<{ results?: LL2LaunchLike[] }>(
+    "/launches/upcoming/?format=json&limit=100&ordering=net&hide_recent_previous=true"
+  );
 
-  for (const term of SEARCH_TERMS) {
-    const query = `format=json&limit=25&search=${encodeURIComponent(term)}`;
-    const data = await fetchJsonWithFallback<{ results?: LL2LaunchLike[] }>([
-      `/launches/upcoming/?${query}`,
-      `/launch/upcoming/?${query}`
-    ]);
-
-    for (const launch of data.results ?? []) {
-      if (isLunarProgram(launch.program) || /artemis|gateway|clps|moon|lunar|orion|sls|starship/i.test(launch.name)) {
-        byId.set(launch.id, launch);
-      }
-    }
-  }
-
-  return [...byId.values()];
-};
-
-const collectEvents = async (): Promise<LL2EventLike[]> => {
-  const byId = new Map<string, LL2EventLike>();
-
-  for (const term of SEARCH_TERMS) {
-    const query = `format=json&limit=25&search=${encodeURIComponent(term)}`;
-    const data = await fetchJsonWithFallback<{ results?: LL2EventLike[] }>([
-      `/events/upcoming/?${query}`,
-      `/event/upcoming/?${query}`
-    ]);
-
-    for (const event of data.results ?? []) {
-      if (isLunarProgram(event.program) || /artemis|gateway|clps|moon|lunar|orion|sls|starship/i.test(event.name)) {
-        byId.set(event.id, event);
-      }
-    }
-  }
-
-  return [...byId.values()];
+  return (data.results ?? []).filter(isRelevantLaunch);
 };
 
 const matchMission = (normalized: NormalizedExternalEvent, missions: Array<{ id: string; title: string }>): string | null => {
@@ -202,6 +171,11 @@ Deno.serve(async (request) => {
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
+  const unauthorized = await requireSyncSecret(request, supabase);
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const { data: run } = await supabase
     .from("sync_runs")
     .insert({ source_id: "launch-library-2", status: "started" })
@@ -209,11 +183,8 @@ Deno.serve(async (request) => {
     .single();
 
   try {
-    const [launches, events] = await Promise.all([collectLaunches(), collectEvents()]);
-    const normalized = [
-      ...launches.map(normalizeLaunchLibraryLaunch),
-      ...events.map(normalizeLaunchLibraryEvent)
-    ];
+    const launches = await collectLaunches();
+    const normalized = launches.map(normalizeLaunchLibraryLaunch);
 
     const { data: missions = [] } = await supabase.from("missions").select("id, title");
 

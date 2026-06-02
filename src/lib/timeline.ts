@@ -1,5 +1,6 @@
 import { equipment, missionEvents, missions, phases } from "@/data/seed";
-import type { Equipment, Mission, MissionEvent, RoadmapFilters, TimelineItem } from "@/lib/types";
+import { getScheduleSortTime } from "@/lib/schedule";
+import type { Equipment, Mission, MissionEvent, Phase, RoadmapFilters, TimelineItem } from "@/lib/types";
 
 export const defaultRoadmapFilters: RoadmapFilters = {
   program: "all",
@@ -12,30 +13,23 @@ export const defaultRoadmapFilters: RoadmapFilters = {
 export const buildTimelineItems = (
   missionList: Mission[] = missions,
   eventList: MissionEvent[] = missionEvents,
-  equipmentList: Equipment[] = equipment
+  equipmentList: Equipment[] = equipment,
+  phaseList: Phase[] = phases
 ): TimelineItem[] =>
   missionList.map((mission) => ({
     mission,
-    phase: phases.find((phase) => phase.id === mission.phaseId),
+    phase: phaseList.find((phase) => phase.id === mission.phaseId),
     events: eventList.filter((event) => event.missionId === mission.id),
     equipment: equipmentList.filter((item) => mission.equipmentIds.includes(item.id) || item.relatedMissionIds.includes(mission.id))
   }));
 
 const dateScore = (item: TimelineItem): number => {
-  const explicit = item.mission.startsAt ?? item.events.find((event) => event.startsAt)?.startsAt;
-  if (explicit) {
-    const parsed = new Date(explicit).getTime();
-    if (!Number.isNaN(parsed)) {
-      return parsed;
-    }
-  }
+  const scores = [
+    getScheduleSortTime(item.mission, item.phase?.startYear),
+    ...item.events.map((event) => getScheduleSortTime(event))
+  ].filter((score) => score !== Number.MAX_SAFE_INTEGER);
 
-  if (item.phase?.startYear) {
-    return Date.UTC(item.phase.startYear, 0, 1);
-  }
-
-  const year = item.mission.dateLabel.match(/\d{4}/)?.[0];
-  return year ? Date.UTC(Number(year), 0, 1) : Number.MAX_SAFE_INTEGER;
+  return scores.length > 0 ? Math.min(...scores) : Number.MAX_SAFE_INTEGER;
 };
 
 export const sortTimelineItems = (items: TimelineItem[]): TimelineItem[] =>
@@ -56,6 +50,7 @@ export const filterTimelineItems = (items: TimelineItem[], filters: RoadmapFilte
       [
         item.mission.title,
         item.mission.subtitle,
+        item.mission.classificationLabel ?? "",
         item.mission.summary,
         item.phase?.title ?? "",
         ...item.mission.objectives,

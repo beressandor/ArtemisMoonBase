@@ -1,17 +1,23 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { ArrowLeft, Link as LinkIcon } from "lucide-react-native";
+import { Link as LinkIcon, Maximize2 } from "lucide-react-native";
+import { BackButton } from "@/components/BackButton";
+import { ImageViewerModal } from "@/components/ImageViewerModal";
 import { MediaImage } from "@/components/MediaImage";
+import { MissionClassificationBadge } from "@/components/MissionClassificationBadge";
 import { Panel } from "@/components/Panel";
 import { Screen } from "@/components/Screen";
 import { SourceLinks } from "@/components/SourceLinks";
 import { StatusPill } from "@/components/StatusPill";
 import { listEquipment, listMissionEvents, listMissions } from "@/lib/dataClient";
+import { useTranslation } from "@/lib/i18n";
 import { colors, spacing, typography } from "@/lib/theme";
 
 export default function MissionDetailScreen() {
+  const { t } = useTranslation();
+  const [imageOpen, setImageOpen] = useState(false);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading } = useQuery({
     queryKey: ["mission-detail", id],
@@ -39,26 +45,36 @@ export default function MissionDetailScreen() {
   if (!mission) {
     return (
       <Screen>
-        <Pressable style={styles.back} onPress={() => router.back()}>
-          <ArrowLeft color={colors.text} size={18} />
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-        <Text style={styles.title}>Mission not found</Text>
+        <BackButton />
+        <Text style={styles.title}>{t("detail.missionNotFound")}</Text>
       </Screen>
     );
   }
 
   return (
     <Screen>
-      <Pressable style={styles.back} onPress={() => router.back()}>
-        <ArrowLeft color={colors.text} size={18} />
-        <Text style={styles.backText}>Back</Text>
-      </Pressable>
+      <BackButton />
 
       <Panel style={styles.hero}>
-        <MediaImage url={mission.heroImageUrl} style={styles.heroImage} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("detail.openImage")}
+          disabled={!mission.heroImageUrl}
+          style={styles.heroImageButton}
+          onPress={() => setImageOpen(true)}
+        >
+          <MediaImage url={mission.heroImageUrl} style={styles.heroImage} />
+          {mission.heroImageUrl ? (
+            <View style={styles.imageAction}>
+              <Maximize2 color={colors.text} size={16} />
+            </View>
+          ) : null}
+        </Pressable>
         <View style={styles.heroBody}>
-          <Text style={styles.kicker}>{mission.subtitle}</Text>
+          <View style={styles.kickerRow}>
+            <MissionClassificationBadge label={mission.classificationLabel} />
+            <Text style={styles.kicker}>{mission.subtitle}</Text>
+          </View>
           <Text style={styles.title}>{mission.title}</Text>
           <View style={styles.metaRow}>
             <StatusPill status={mission.status} />
@@ -69,7 +85,7 @@ export default function MissionDetailScreen() {
       </Panel>
 
       <Panel>
-        <Text style={styles.sectionTitle}>Objectives</Text>
+        <Text style={styles.sectionTitle}>{t("detail.objectives")}</Text>
         {mission.objectives.map((objective) => (
           <View key={objective} style={styles.bulletRow}>
             <View style={styles.bullet} />
@@ -79,7 +95,7 @@ export default function MissionDetailScreen() {
       </Panel>
 
       <Panel>
-        <Text style={styles.sectionTitle}>Schedule</Text>
+        <Text style={styles.sectionTitle}>{t("detail.schedule")}</Text>
         {events.map((event) => (
           <View key={event.id} style={styles.eventRow}>
             <Text style={styles.date}>{event.dateLabel}</Text>
@@ -90,7 +106,7 @@ export default function MissionDetailScreen() {
       </Panel>
 
       <Panel>
-        <Text style={styles.sectionTitle}>Linked equipment</Text>
+        <Text style={styles.sectionTitle}>{t("detail.linkedEquipment")}</Text>
         <View style={styles.chipGrid}>
           {relatedEquipment.map((item) => (
             <Pressable
@@ -108,33 +124,47 @@ export default function MissionDetailScreen() {
       </Panel>
 
       <Panel>
-        <Text style={styles.sectionTitle}>Sources</Text>
+        <Text style={styles.sectionTitle}>{t("detail.sources")}</Text>
         <SourceLinks sources={mission.sourceUrls} />
       </Panel>
+
+      <ImageViewerModal
+        imageUrl={mission.heroImageUrl}
+        subtitle={mission.subtitle}
+        title={mission.title}
+        visible={imageOpen}
+        onClose={() => setImageOpen(false)}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  back: {
-    alignItems: "center",
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    gap: spacing.sm
-  },
-  backText: {
-    ...typography.small,
-    color: colors.text
-  },
   hero: {
     padding: 0,
     overflow: "hidden"
+  },
+  heroImageButton: {
+    position: "relative"
   },
   heroImage: {
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     height: 170,
     width: "100%"
+  },
+  imageAction: {
+    alignItems: "center",
+    backgroundColor: "rgba(3, 5, 10, 0.72)",
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    bottom: spacing.md,
+    height: 34,
+    justifyContent: "center",
+    position: "absolute",
+    right: spacing.md,
+    width: 34
   },
   heroBody: {
     gap: spacing.md,
@@ -143,6 +173,12 @@ const styles = StyleSheet.create({
   kicker: {
     ...typography.small,
     color: colors.blue
+  },
+  kickerRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm
   },
   title: {
     ...typography.h1,

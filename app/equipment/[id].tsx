@@ -1,16 +1,22 @@
+import { useState } from "react";
 import { useLocalSearchParams, router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { ArrowLeft, Link as LinkIcon } from "lucide-react-native";
+import { Link as LinkIcon, Maximize2 } from "lucide-react-native";
+import { BackButton } from "@/components/BackButton";
+import { ImageViewerModal } from "@/components/ImageViewerModal";
 import { MediaImage } from "@/components/MediaImage";
 import { Panel } from "@/components/Panel";
 import { Screen } from "@/components/Screen";
 import { SourceLinks } from "@/components/SourceLinks";
 import { StatusPill } from "@/components/StatusPill";
 import { listEquipment, listMissions } from "@/lib/dataClient";
+import { useTranslation } from "@/lib/i18n";
 import { colors, spacing, typography } from "@/lib/theme";
 
 export default function EquipmentDetailScreen() {
+  const { t } = useTranslation();
+  const [imageOpen, setImageOpen] = useState(false);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading } = useQuery({
     queryKey: ["equipment-detail", id],
@@ -34,26 +40,33 @@ export default function EquipmentDetailScreen() {
   if (!item) {
     return (
       <Screen>
-        <Pressable style={styles.back} onPress={() => router.back()}>
-          <ArrowLeft color={colors.text} size={18} />
-          <Text style={styles.backText}>Back</Text>
-        </Pressable>
-        <Text style={styles.title}>Equipment not found</Text>
+        <BackButton />
+        <Text style={styles.title}>{t("detail.equipmentNotFound")}</Text>
       </Screen>
     );
   }
 
   return (
     <Screen>
-      <Pressable style={styles.back} onPress={() => router.back()}>
-        <ArrowLeft color={colors.text} size={18} />
-        <Text style={styles.backText}>Back</Text>
-      </Pressable>
+      <BackButton />
 
       <Panel style={styles.hero}>
-        <MediaImage url={item.imageUrl} style={styles.heroImage} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("detail.openImage")}
+          disabled={!item.imageUrl}
+          style={styles.heroImageButton}
+          onPress={() => setImageOpen(true)}
+        >
+          <MediaImage url={item.imageUrl} style={styles.heroImage} />
+          {item.imageUrl ? (
+            <View style={styles.imageAction}>
+              <Maximize2 color={colors.text} size={16} />
+            </View>
+          ) : null}
+        </Pressable>
         <View style={styles.heroBody}>
-          <Text style={styles.kicker}>{item.category.toUpperCase()}</Text>
+          <Text style={styles.kicker}>{t(`category.${item.category}`).toUpperCase()}</Text>
           <Text style={styles.title}>{item.name}</Text>
           <View style={styles.metaRow}>
             <Text style={styles.owner}>{item.owner}</Text>
@@ -64,7 +77,7 @@ export default function EquipmentDetailScreen() {
       </Panel>
 
       <Panel>
-        <Text style={styles.sectionTitle}>Specs</Text>
+        <Text style={styles.sectionTitle}>{t("detail.specs")}</Text>
         {item.specs.map((spec) => (
           <View key={spec.label} style={styles.specRow}>
             <Text style={styles.specLabel}>{spec.label}</Text>
@@ -74,7 +87,7 @@ export default function EquipmentDetailScreen() {
       </Panel>
 
       <Panel>
-        <Text style={styles.sectionTitle}>Mission links</Text>
+        <Text style={styles.sectionTitle}>{t("detail.missionLinks")}</Text>
         <View style={styles.chipGrid}>
           {relatedMissions.map((mission) => (
             <Pressable
@@ -92,33 +105,47 @@ export default function EquipmentDetailScreen() {
       </Panel>
 
       <Panel>
-        <Text style={styles.sectionTitle}>Sources</Text>
+        <Text style={styles.sectionTitle}>{t("detail.sources")}</Text>
         <SourceLinks sources={item.sourceUrls} />
       </Panel>
+
+      <ImageViewerModal
+        imageUrl={item.imageUrl}
+        subtitle={t(`category.${item.category}`)}
+        title={item.name}
+        visible={imageOpen}
+        onClose={() => setImageOpen(false)}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  back: {
-    alignItems: "center",
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    gap: spacing.sm
-  },
-  backText: {
-    ...typography.small,
-    color: colors.text
-  },
   hero: {
     padding: 0,
     overflow: "hidden"
+  },
+  heroImageButton: {
+    position: "relative"
   },
   heroImage: {
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     height: 190,
     width: "100%"
+  },
+  imageAction: {
+    alignItems: "center",
+    backgroundColor: "rgba(3, 5, 10, 0.72)",
+    borderColor: colors.border,
+    borderRadius: 8,
+    borderWidth: 1,
+    bottom: spacing.md,
+    height: 34,
+    justifyContent: "center",
+    position: "absolute",
+    right: spacing.md,
+    width: 34
   },
   heroBody: {
     gap: spacing.md,

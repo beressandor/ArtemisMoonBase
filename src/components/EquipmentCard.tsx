@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "@/lib/i18n";
 import { colors, spacing, typography } from "@/lib/theme";
 import type { Equipment } from "@/lib/types";
 import { MediaImage } from "@/components/MediaImage";
@@ -11,12 +12,15 @@ interface EquipmentCardProps {
 }
 
 export function EquipmentCard({ item }: EquipmentCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Pressable onPress={() => router.push({ pathname: "/equipment/[id]", params: { id: item.id } })}>
       <Panel style={styles.card}>
         <MediaImage url={item.imageUrl} style={styles.image} />
+        <View style={styles.imageShade} />
         <View style={styles.body}>
-          <Text style={styles.category}>{item.category.toUpperCase()}</Text>
+          <Text style={styles.category}>{t(`category.${item.category}`).toUpperCase()}</Text>
           <Text style={styles.title}>{item.name}</Text>
           <Text numberOfLines={3} style={styles.summary}>
             {item.summary}
@@ -36,6 +40,7 @@ export function EquipmentCard({ item }: EquipmentCardProps) {
 const styles = StyleSheet.create({
   card: {
     padding: 0,
+    position: "relative",
     overflow: "hidden"
   },
   image: {
@@ -44,13 +49,22 @@ const styles = StyleSheet.create({
     height: 148,
     width: "100%"
   },
+  imageShade: {
+    backgroundColor: "rgba(3, 5, 10, 0.18)",
+    height: 148,
+    left: 0,
+    position: "absolute",
+    right: 0,
+    top: 0
+  },
   body: {
     gap: spacing.sm,
     padding: spacing.lg
   },
   category: {
     ...typography.small,
-    color: colors.blue
+    color: colors.gold,
+    textTransform: "uppercase"
   },
   title: {
     ...typography.h2,

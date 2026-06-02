@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm
   },
   segment: {
-    backgroundColor: colors.panel,
+    backgroundColor: colors.panelGlass,
     borderColor: colors.borderSoft,
     borderRadius: radius.sm,
     borderWidth: 1,
@@ -49,14 +49,14 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm
   },
   selected: {
-    backgroundColor: colors.white,
-    borderColor: colors.white
+    backgroundColor: "rgba(138, 232, 255, 0.16)",
+    borderColor: colors.blue
   },
   text: {
     ...typography.small,
     color: colors.textMuted
   },
   selectedText: {
-    color: colors.background
+    color: colors.text
   }
 });

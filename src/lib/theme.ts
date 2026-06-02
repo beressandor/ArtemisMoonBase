@@ -1,19 +1,31 @@
+import { Platform } from "react-native";
+
+const headingFontFamily =
+  Platform.select({
+    ios: "Avenir Next",
+    android: "sans-serif-medium",
+    default: "Inter, Avenir Next, Segoe UI, sans-serif"
+  }) ?? "System";
+
 export const colors = {
-  background: "#070A0F",
-  backgroundSoft: "#0B1018",
-  panel: "#111722",
-  panelElevated: "#151D2B",
-  border: "#263143",
-  borderSoft: "#1D2736",
-  text: "#F7FAFC",
-  textMuted: "#A9B4C5",
-  textDim: "#6F7B8E",
-  blue: "#8FE3FF",
-  blueDeep: "#3D6DFF",
-  green: "#9BE7C8",
-  gold: "#F8C471",
+  background: "#03050A",
+  backgroundSoft: "#070B12",
+  panel: "rgba(14, 20, 31, 0.92)",
+  panelElevated: "rgba(20, 29, 44, 0.94)",
+  panelGlass: "rgba(255, 255, 255, 0.055)",
+  border: "rgba(136, 163, 194, 0.24)",
+  borderSoft: "rgba(136, 163, 194, 0.14)",
+  text: "#F8FBFF",
+  textMuted: "#AAB7C9",
+  textDim: "#667386",
+  blue: "#8AE8FF",
+  blueDeep: "#3B82FF",
+  cyanMuted: "#2D6777",
+  green: "#96F2C8",
+  gold: "#FFD27A",
   red: "#FF8A8A",
-  violet: "#C7D2FE",
+  violet: "#C7B8FF",
+  magenta: "#FF79C6",
   white: "#FFFFFF",
   black: "#000000"
 };
@@ -35,16 +47,19 @@ export const radius = {
 
 export const typography = {
   title: {
+    fontFamily: headingFontFamily,
     fontSize: 30,
     lineHeight: 36,
-    fontWeight: "700" as const
+    fontWeight: "800" as const
   },
   h1: {
+    fontFamily: headingFontFamily,
     fontSize: 24,
     lineHeight: 30,
-    fontWeight: "700" as const
+    fontWeight: "800" as const
   },
   h2: {
+    fontFamily: headingFontFamily,
     fontSize: 18,
     lineHeight: 24,
     fontWeight: "700" as const

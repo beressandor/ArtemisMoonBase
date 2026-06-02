@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ChevronDown, ChevronRight, Rocket } from "lucide-react-native";
+import { Image } from "expo-image";
+import { CalendarDays, ChevronDown, ChevronRight } from "lucide-react-native";
 import { router } from "expo-router";
-import { colors, spacing, typography } from "@/lib/theme";
+import { useTranslation } from "@/lib/i18n";
+import { colors, radius, spacing, typography } from "@/lib/theme";
+import { getEventScheduleDisplay, getTimelineSchedule } from "@/lib/schedule";
 import type { TimelineItem } from "@/lib/types";
+import { MissionClassificationBadge } from "@/components/MissionClassificationBadge";
 import { Panel } from "@/components/Panel";
 import { StatusPill } from "@/components/StatusPill";
 
@@ -12,40 +16,89 @@ interface TimelineCardProps {
 }
 
 export function TimelineCard({ item }: TimelineCardProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const { mission, phase, events, equipment } = item;
+  const schedule = getTimelineSchedule(item);
 
   return (
-    <Panel elevated={expanded}>
+    <Panel elevated={expanded} style={styles.card}>
       <Pressable style={styles.header} onPress={() => setExpanded((current) => !current)}>
-        <View style={styles.icon}>
-          <Rocket color={colors.blue} size={18} />
+        <View style={styles.scheduleColumn}>
+          <View style={styles.timelineLine} />
+          <View style={styles.dateBadge}>
+            {mission.heroImageUrl ? (
+              <>
+                <Image source={{ uri: mission.heroImageUrl }} style={styles.dateBadgeImage} contentFit="cover" transition={180} />
+                <View style={styles.dateBadgeShade} />
+              </>
+            ) : null}
+            <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.72} style={styles.datePrimary}>
+              {schedule.primary}
+            </Text>
+            {schedule.secondary ? (
+              <Text numberOfLines={1} style={styles.dateSecondary}>
+                {schedule.secondary}
+              </Text>
+            ) : null}
+          </View>
+          <View style={[styles.node, schedule.isLive && styles.nodeLive]} />
         </View>
+
         <View style={styles.titleBlock}>
-          <Text style={styles.date}>{mission.dateLabel}</Text>
-          <Text style={styles.title}>{mission.title}</Text>
+          <View style={styles.metaRow}>
+            <MissionClassificationBadge label={mission.classificationLabel} />
+            <StatusPill status={mission.status} />
+            {schedule.caption ? (
+              <View style={[styles.sourcePill, schedule.isLive && styles.sourcePillLive]}>
+                <CalendarDays color={schedule.isLive ? colors.green : colors.textDim} size={13} />
+                <Text style={[styles.sourceText, schedule.isLive && styles.sourceTextLive]}>{schedule.caption}</Text>
+              </View>
+            ) : null}
+          </View>
+          <Text numberOfLines={2} style={styles.title}>
+            {mission.title}
+          </Text>
           <Text numberOfLines={2} style={styles.subtitle}>
-            {phase?.title ?? mission.subtitle} · {mission.subtitle}
+            {phase?.title ?? mission.subtitle} / {mission.subtitle}
           </Text>
         </View>
+
         {expanded ? <ChevronDown color={colors.textMuted} size={20} /> : <ChevronRight color={colors.textMuted} size={20} />}
       </Pressable>
-
-      <View style={styles.metaRow}>
-        <StatusPill status={mission.status} />
-        <Text style={styles.precision}>{mission.datePrecision.toUpperCase()}</Text>
-      </View>
 
       {expanded && (
         <View style={styles.details}>
           <Text style={styles.summary}>{mission.summary}</Text>
           <View style={styles.eventList}>
-            {events.map((event) => (
-              <View key={event.id} style={styles.eventRow}>
-                <Text style={styles.eventDate}>{event.dateLabel}</Text>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-              </View>
-            ))}
+            {events.map((event) => {
+              const eventSchedule = getEventScheduleDisplay(event);
+
+              return (
+                <View key={event.id} style={styles.eventRow}>
+                  <View style={styles.eventDateBox}>
+                    <Text numberOfLines={1} style={styles.eventDatePrimary}>
+                      {eventSchedule.primary}
+                    </Text>
+                    {eventSchedule.secondary ? (
+                      <Text numberOfLines={1} style={styles.eventDateSecondary}>
+                        {eventSchedule.secondary}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <View style={styles.eventCopy}>
+                    <Text numberOfLines={2} style={styles.eventTitle}>
+                      {event.title}
+                    </Text>
+                    {eventSchedule.caption ? (
+                      <Text numberOfLines={1} style={styles.eventCaption}>
+                        {eventSchedule.caption}
+                      </Text>
+                    ) : null}
+                  </View>
+                </View>
+              );
+            })}
           </View>
           <View style={styles.chips}>
             {equipment.slice(0, 4).map((item) => (
@@ -64,7 +117,7 @@ export function TimelineCard({ item }: TimelineCardProps) {
             style={styles.primaryAction}
             onPress={() => router.push({ pathname: "/mission/[id]", params: { id: mission.id } })}
           >
-            <Text style={styles.primaryText}>Open mission brief</Text>
+            <Text style={styles.primaryText}>{t("timeline.openBrief")}</Text>
           </Pressable>
         </View>
       )}
@@ -73,28 +126,110 @@ export function TimelineCard({ item }: TimelineCardProps) {
 }
 
 const styles = StyleSheet.create({
+  card: {
+    overflow: "hidden"
+  },
   header: {
-    alignItems: "center",
+    alignItems: "flex-start",
     flexDirection: "row",
     gap: spacing.md
   },
-  icon: {
+  scheduleColumn: {
     alignItems: "center",
-    backgroundColor: colors.backgroundSoft,
-    borderColor: colors.borderSoft,
-    borderRadius: 8,
+    alignSelf: "stretch",
+    minHeight: 86,
+    width: 102
+  },
+  timelineLine: {
+    backgroundColor: "rgba(138, 232, 255, 0.18)",
+    bottom: -spacing.lg,
+    position: "absolute",
+    top: -spacing.lg,
+    width: 1
+  },
+  dateBadge: {
+    alignItems: "center",
+    backgroundColor: "rgba(138, 232, 255, 0.095)",
+    borderColor: "rgba(138, 232, 255, 0.32)",
+    borderRadius: radius.sm,
     borderWidth: 1,
-    height: 38,
+    gap: 2,
     justifyContent: "center",
-    width: 38
+    minHeight: 70,
+    overflow: "hidden",
+    paddingHorizontal: 6,
+    paddingVertical: spacing.sm,
+    width: 102
+  },
+  dateBadgeImage: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.52
+  },
+  dateBadgeShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.54)"
+  },
+  datePrimary: {
+    color: colors.text,
+    fontFamily: typography.h1.fontFamily,
+    fontSize: 19,
+    fontWeight: "800",
+    lineHeight: 22,
+    position: "relative",
+    textAlign: "center"
+  },
+  dateSecondary: {
+    ...typography.small,
+    color: colors.gold,
+    position: "relative",
+    textAlign: "center",
+    textTransform: "uppercase"
+  },
+  node: {
+    backgroundColor: colors.blue,
+    borderColor: colors.background,
+    borderRadius: 6,
+    borderWidth: 2,
+    height: 12,
+    marginTop: spacing.sm,
+    width: 12
+  },
+  nodeLive: {
+    backgroundColor: colors.green
   },
   titleBlock: {
     flex: 1,
-    gap: 2
+    gap: spacing.xs,
+    paddingTop: 1
   },
-  date: {
+  metaRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm
+  },
+  sourcePill: {
+    alignItems: "center",
+    backgroundColor: colors.panelGlass,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: spacing.xs,
+    maxWidth: "100%",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs
+  },
+  sourcePillLive: {
+    backgroundColor: "rgba(150, 242, 200, 0.08)",
+    borderColor: "rgba(150, 242, 200, 0.28)"
+  },
+  sourceText: {
     ...typography.small,
-    color: colors.blue
+    color: colors.textMuted
+  },
+  sourceTextLive: {
+    color: colors.green
   },
   title: {
     ...typography.h2,
@@ -102,19 +237,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...typography.small,
-    color: colors.textMuted
-  },
-  metaRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between"
-  },
-  precision: {
-    ...typography.small,
     color: colors.textDim
   },
   details: {
-    gap: spacing.md
+    gap: spacing.md,
+    paddingLeft: 114
   },
   summary: {
     ...typography.body,
@@ -124,18 +251,45 @@ const styles = StyleSheet.create({
     gap: spacing.sm
   },
   eventRow: {
-    borderLeftColor: colors.border,
-    borderLeftWidth: 2,
-    gap: spacing.xs,
-    paddingLeft: spacing.md
+    alignItems: "center",
+    borderTopColor: colors.borderSoft,
+    borderTopWidth: 1,
+    flexDirection: "row",
+    gap: spacing.md,
+    paddingVertical: spacing.sm
   },
-  eventDate: {
+  eventDateBox: {
+    alignItems: "center",
+    backgroundColor: colors.panelGlass,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    minHeight: 46,
+    justifyContent: "center",
+    paddingHorizontal: 6,
+    width: 86
+  },
+  eventDatePrimary: {
     ...typography.small,
-    color: colors.gold
+    color: colors.text,
+    textAlign: "center"
+  },
+  eventDateSecondary: {
+    ...typography.small,
+    color: colors.gold,
+    textAlign: "center"
+  },
+  eventCopy: {
+    flex: 1,
+    gap: 2
   },
   eventTitle: {
     ...typography.body,
     color: colors.text
+  },
+  eventCaption: {
+    ...typography.small,
+    color: colors.textDim
   },
   chips: {
     flexDirection: "row",
@@ -143,8 +297,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm
   },
   chip: {
-    backgroundColor: colors.backgroundSoft,
-    borderColor: colors.borderSoft,
+    backgroundColor: "rgba(199, 184, 255, 0.1)",
+    borderColor: "rgba(199, 184, 255, 0.24)",
     borderRadius: 8,
     borderWidth: 1,
     maxWidth: "100%",
@@ -157,7 +311,7 @@ const styles = StyleSheet.create({
   },
   primaryAction: {
     alignItems: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.blue,
     borderRadius: 8,
     minHeight: 42,
     justifyContent: "center"
