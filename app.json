@@ -2,7 +2,7 @@
   "expo": {
     "name": "Artemis Moon Base",
     "slug": "artemis-moon-base",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "artemismoonbase",
@@ -16,7 +16,7 @@
     ],
     "android": {
       "package": "com.beressandor.artemismoonbase",
-      "versionCode": 2,
+      "versionCode": 3,
       "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
