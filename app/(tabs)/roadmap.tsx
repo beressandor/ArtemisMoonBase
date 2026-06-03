@@ -10,7 +10,7 @@ import { TimelineCard } from "@/components/TimelineCard";
 import { listEquipment, listMissionEvents, listMissions, listPhases } from "@/lib/dataClient";
 import { useTranslation } from "@/lib/i18n";
 import { formatScheduleDisplay, getTimelineSchedule, type ScheduleDisplay } from "@/lib/schedule";
-import { buildTimelineItems, filterTimelineItems, sortTimelineItems } from "@/lib/timeline";
+import { buildTimelineItems, filterTimelineItems, isRoadmapVisibleMission, sortTimelineItems } from "@/lib/timeline";
 import { colors, radius, spacing, typography } from "@/lib/theme";
 import type { EquipmentCategory, MissionStatus, Phase, TimelineItem } from "@/lib/types";
 import { useRoadmapFilters } from "@/store/useRoadmapFilters";
@@ -24,10 +24,8 @@ type ScheduleMarker = {
   schedule: ScheduleDisplay;
 };
 
-const legacyMoonBaseOverviewIds = new Set(["moon-base-phase-one", "clps-cargo-cadence", "phase-two-sustained-stays", "phase-three-lunar-base"]);
-
 export default function RoadmapScreen() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const { filters, setFilter, reset } = useRoadmapFilters();
   const [activeView, setActiveView] = useState<RoadmapView>("artemis");
   const [expandedPhases, setExpandedPhases] = useState<Record<string, boolean>>({ "phase-one": true });
@@ -42,7 +40,6 @@ export default function RoadmapScreen() {
     () => [
       { label: t("filters.anyStatus"), value: "all" },
       { label: t("status.active"), value: "active" },
-      { label: t("status.watch"), value: "watch" },
       { label: t("status.planned"), value: "planned" },
       { label: t("status.in-development"), value: "in-development" }
     ],
@@ -60,13 +57,13 @@ export default function RoadmapScreen() {
     [t]
   );
   const { data, isLoading } = useQuery({
-    queryKey: ["roadmap"],
+    queryKey: ["roadmap", language],
     queryFn: async () => {
       const [allMissions, allEvents, allEquipment, allPhases] = await Promise.all([
-        listMissions(),
-        listMissionEvents(),
-        listEquipment(),
-        listPhases()
+        listMissions(language),
+        listMissionEvents(language),
+        listEquipment(language),
+        listPhases(language)
       ]);
       return { allMissions, allEvents, allEquipment, allPhases };
     }
@@ -85,28 +82,31 @@ export default function RoadmapScreen() {
     [allTimelineItems, filters]
   );
 
-  const artemisItems = useMemo(
-    () => filteredItems.filter((item) => item.mission.programIds.includes("artemis")),
+  const upcomingItems = useMemo(
+    () => filteredItems.filter((item) => isRoadmapVisibleMission(item.mission)),
     [filteredItems]
+  );
+
+  const artemisItems = useMemo(
+    () => upcomingItems.filter((item) => item.mission.programIds.includes("artemis")),
+    [upcomingItems]
   );
 
   const moonBaseItems = useMemo(
     () =>
-      filteredItems.filter((item) =>
-        item.mission.programIds.includes("moon-base") && !legacyMoonBaseOverviewIds.has(item.mission.id)
-      ),
-    [filteredItems]
+      upcomingItems.filter((item) => item.mission.programIds.includes("moon-base")),
+    [upcomingItems]
   );
 
   const allArtemisItems = useMemo(
-    () => allTimelineItems.filter((item) => item.mission.programIds.includes("artemis")),
+    () => allTimelineItems.filter((item) => isRoadmapVisibleMission(item.mission) && item.mission.programIds.includes("artemis")),
     [allTimelineItems]
   );
 
   const allMoonBaseItems = useMemo(
     () =>
       allTimelineItems.filter((item) =>
-        item.mission.programIds.includes("moon-base") && !legacyMoonBaseOverviewIds.has(item.mission.id)
+        isRoadmapVisibleMission(item.mission) && item.mission.programIds.includes("moon-base")
       ),
     [allTimelineItems]
   );
@@ -128,17 +128,17 @@ export default function RoadmapScreen() {
         id: item.mission.id,
         title: item.mission.title,
         meta: item.mission.subtitle,
-        schedule: getTimelineSchedule(item)
+        schedule: getTimelineSchedule(item, language)
       }));
     }
 
     return phaseGroups.map(({ phase, items }) => ({
       id: phase.id,
       title: phase.title,
-      meta: `${items.length} roadmap items`,
-      schedule: formatScheduleDisplay({ dateLabel: phase.dateLabel, datePrecision: "range" })
+      meta: t("roadmap.phaseItems", { count: items.length }),
+      schedule: formatScheduleDisplay({ dateLabel: phase.dateLabel, datePrecision: "range" }, undefined, language)
     }));
-  }, [activeView, artemisItems, phaseGroups]);
+  }, [activeView, artemisItems, language, phaseGroups, t]);
 
   const statusSummary = statusOptions.find((option) => option.value === filters.status)?.label ?? "Any status";
   const systemSummary = equipmentOptions.find((option) => option.value === filters.equipmentCategory)?.label ?? "All systems";
@@ -304,9 +304,9 @@ interface PhaseSectionProps {
 }
 
 function PhaseSection({ phase, items, expanded, onToggle }: PhaseSectionProps) {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const HeaderIcon = expanded ? ChevronDown : ChevronRight;
-  const schedule = formatScheduleDisplay({ dateLabel: phase.dateLabel, datePrecision: "range" });
+  const schedule = formatScheduleDisplay({ dateLabel: phase.dateLabel, datePrecision: "range" }, undefined, language);
 
   return (
     <View style={styles.phaseSection}>
@@ -376,8 +376,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm
   },
   viewTabSelected: {
-    backgroundColor: "rgba(138, 232, 255, 0.12)",
-    borderColor: "rgba(138, 232, 255, 0.32)"
+    backgroundColor: "rgba(217, 212, 199, 0.08)",
+    borderColor: "rgba(217, 212, 199, 0.24)"
   },
   viewTabLabel: {
     ...typography.h2,
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
     color: colors.text
   },
   scheduleStrip: {
-    backgroundColor: "rgba(14, 20, 31, 0.72)",
+    backgroundColor: "rgba(13, 14, 17, 0.74)",
     borderColor: colors.borderSoft,
     borderRadius: radius.sm,
     borderWidth: 1,
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   },
   markerNode: {
     backgroundColor: colors.blue,
-    borderColor: "rgba(138, 232, 255, 0.26)",
+    borderColor: "rgba(217, 212, 199, 0.22)",
     borderRadius: 6,
     borderWidth: 2,
     height: 12,
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(150, 242, 200, 0.28)"
   },
   markerLine: {
-    backgroundColor: "rgba(138, 232, 255, 0.2)",
+    backgroundColor: "rgba(217, 212, 199, 0.16)",
     flex: 1,
     height: 1
   },

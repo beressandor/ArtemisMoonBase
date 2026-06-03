@@ -1,22 +1,42 @@
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
-import { ArrowRight, CalendarClock, Rocket } from "lucide-react-native";
+import { CalendarClock, ExternalLink, Newspaper, Rocket } from "lucide-react-native";
 import { AppHeader } from "@/components/AppHeader";
-import { MetricTile } from "@/components/MetricTile";
 import { Panel } from "@/components/Panel";
 import { Screen } from "@/components/Screen";
 import { StatusPill } from "@/components/StatusPill";
 import { getDashboardData } from "@/lib/dataClient";
 import { useTranslation } from "@/lib/i18n";
+import { formatScheduleDisplay } from "@/lib/schedule";
 import { colors, spacing, typography } from "@/lib/theme";
 
 const MOON_BANNER_URL = "https://images-assets.nasa.gov/image/art002e009287/art002e009287~large.jpg";
 
+const formatNewsDate = (publishedAt: string | undefined, locale: string): string => {
+  if (!publishedAt) {
+    return "";
+  }
+
+  const parsed = new Date(publishedAt);
+  if (Number.isNaN(parsed.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC"
+  }).format(parsed);
+};
+
 export default function DashboardScreen() {
-  const { t } = useTranslation();
-  const { data, isLoading } = useQuery({ queryKey: ["dashboard"], queryFn: getDashboardData });
+  const { language, t } = useTranslation();
+  const { data, isLoading } = useQuery({ queryKey: ["dashboard", language], queryFn: () => getDashboardData(language) });
+  const nextEventSchedule = data?.nextEvent ? formatScheduleDisplay(data.nextEvent, undefined, language) : undefined;
+  const nextLaunchSchedule = data?.nextLaunch ? formatScheduleDisplay(data.nextLaunch, undefined, language) : undefined;
+  const newsLocale = language === "hu" ? "hu-HU" : "en-US";
 
   if (isLoading || !data) {
     return (
@@ -35,7 +55,6 @@ export default function DashboardScreen() {
           <Image source={{ uri: MOON_BANNER_URL }} style={styles.brandImage} contentFit="cover" transition={250} />
           <View style={styles.brandShade} />
           <View style={styles.brandContent}>
-            <Text style={styles.brandKicker}>{t("dashboard.kicker")}</Text>
             <Text style={styles.brandTitle}>Artemis Moon Base</Text>
             <Text style={styles.brandCopy}>{t("dashboard.copy")}</Text>
           </View>
@@ -54,20 +73,13 @@ export default function DashboardScreen() {
           {data.nextEvent ? <StatusPill status={data.nextEvent.status} /> : null}
         </View>
         <View style={styles.heroDateRow}>
-          <Text style={styles.heroDate}>{data.nextEvent?.dateLabel ?? "TBD"}</Text>
-          <View style={styles.missionBadge}>
-            <Text style={styles.missionBadgeText}>NASA / LL2</Text>
-          </View>
+          <Text style={styles.heroDate}>{nextEventSchedule?.primary ?? "TBD"}</Text>
         </View>
         <Text style={styles.heroSummary}>{data.nextEvent?.summary ?? t("dashboard.waiting")}</Text>
         <View style={styles.heroStats}>
           <View style={styles.heroStat}>
             <Text style={styles.statLabel}>{t("dashboard.program")}</Text>
-            <Text style={styles.statValue}>Artemis</Text>
-          </View>
-          <View style={styles.heroStat}>
-            <Text style={styles.statLabel}>{t("dashboard.mode")}</Text>
-            <Text style={styles.statValue}>{t("dashboard.roadmap")}</Text>
+            <Text style={styles.statValue}>{data.nextEventProgramLabel ?? "NASA"}</Text>
           </View>
           <View style={styles.heroStat}>
             <Text style={styles.statLabel}>{t("dashboard.source")}</Text>
@@ -80,48 +92,43 @@ export default function DashboardScreen() {
         </Pressable>
       </Panel>
 
-      <View style={styles.metricsGrid}>
-        {data.metrics.map((metric) => (
-          <MetricTile
-            key={metric.label}
-            metric={{
-              ...metric,
-              label:
-                metric.label === "Programs"
-                  ? t("dashboard.metricPrograms")
-                  : metric.label === "Tracked missions"
-                    ? t("dashboard.metricTrackedMissions")
-                    : metric.label === "Equipment"
-                      ? t("dashboard.metricEquipment")
-                      : metric.label
-            }}
-          />
-        ))}
-      </View>
-
       <Panel>
         <View style={styles.sectionHeader}>
           <Rocket color={colors.blue} size={18} />
           <Text style={styles.sectionTitle}>{t("dashboard.launchTracking")}</Text>
         </View>
-        <Text style={styles.largeValue}>{data.nextLaunch?.dateLabel ?? t("dashboard.trackedByLl2")}</Text>
+        <Text style={styles.largeValue}>{nextLaunchSchedule?.primary ?? t("dashboard.trackedLaunch")}</Text>
         <Text style={styles.muted}>{data.nextLaunch?.title ?? t("dashboard.ll2Sync")}</Text>
       </Panel>
 
-      {data.highlightedMission ? (
-        <Pressable onPress={() => router.push({ pathname: "/mission/[id]", params: { id: data.highlightedMission!.id } })}>
-          <Panel style={styles.featured}>
-            <View style={styles.featuredAccent} />
-            <View style={styles.featuredBody}>
-              <Text style={styles.kicker}>{t("dashboard.missionBrief")}</Text>
-              <Text style={styles.sectionTitle}>{data.highlightedMission.title}</Text>
-              <Text numberOfLines={3} style={styles.muted}>
-                {data.highlightedMission.summary}
-              </Text>
-            </View>
-            <ArrowRight color={colors.textMuted} size={20} />
-          </Panel>
-        </Pressable>
+      {data.latestNews.length > 0 ? (
+        <Panel style={styles.newsPanel}>
+          <View style={styles.sectionHeader}>
+            <Newspaper color={colors.gold} size={18} />
+            <Text style={styles.sectionTitle}>{t("dashboard.latestNews")}</Text>
+          </View>
+          <View style={styles.newsList}>
+            {data.latestNews.map((item) => (
+              <Pressable key={item.id} style={styles.newsItem} onPress={() => Linking.openURL(item.url)}>
+                <View style={styles.newsBody}>
+                  <View style={styles.newsMetaRow}>
+                    <Text style={styles.newsDate}>{formatNewsDate(item.publishedAt, newsLocale)}</Text>
+                    <Text style={styles.newsSource}>NASA</Text>
+                  </View>
+                  <Text numberOfLines={2} style={styles.newsTitle}>
+                    {item.title}
+                  </Text>
+                  <Text numberOfLines={2} style={styles.newsSummary}>
+                    {item.summary}
+                  </Text>
+                </View>
+                <View style={styles.newsAction}>
+                  <ExternalLink color={colors.textMuted} size={15} />
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </Panel>
       ) : null}
     </Screen>
   );
@@ -153,11 +160,6 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
     paddingTop: spacing.xl
   },
-  brandKicker: {
-    ...typography.small,
-    color: colors.blue,
-    textTransform: "uppercase"
-  },
   brandTitle: {
     fontFamily: typography.title.fontFamily,
     fontSize: 36,
@@ -172,8 +174,8 @@ const styles = StyleSheet.create({
   },
   hero: {
     gap: spacing.lg,
-    minHeight: 430,
     overflow: "hidden",
+    paddingBottom: spacing.lg,
     paddingTop: 22
   },
   heroImage: {
@@ -216,27 +218,13 @@ const styles = StyleSheet.create({
     color: colors.text
   },
   heroDateRow: {
-    alignItems: "flex-start",
-    gap: spacing.md
+    alignItems: "flex-start"
   },
   heroDate: {
     fontSize: 44,
     fontWeight: "800",
     lineHeight: 48,
     color: colors.text
-  },
-  missionBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(255, 210, 122, 0.14)",
-    borderColor: "rgba(255, 210, 122, 0.32)",
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs
-  },
-  missionBadgeText: {
-    ...typography.small,
-    color: colors.gold
   },
   heroSummary: {
     ...typography.body,
@@ -279,11 +267,6 @@ const styles = StyleSheet.create({
     ...typography.small,
     color: colors.background
   },
-  metricsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.md
-  },
   sectionHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -303,23 +286,61 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textMuted
   },
-  featured: {
+  newsPanel: {
+    gap: spacing.md
+  },
+  newsList: {
+    gap: spacing.sm
+  },
+  newsItem: {
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.035)",
+    borderColor: colors.borderSoft,
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: spacing.md,
+    minHeight: 96,
+    padding: spacing.md
+  },
+  newsBody: {
+    flex: 1,
+    gap: 5
+  },
+  newsMetaRow: {
     alignItems: "center",
     flexDirection: "row",
-    overflow: "hidden"
-  },
-  featuredAccent: {
-    backgroundColor: colors.magenta,
-    bottom: 0,
-    left: 0,
-    opacity: 0.82,
-    position: "absolute",
-    top: 0,
-    width: 3
-  },
-  featuredBody: {
-    flex: 1,
     gap: spacing.sm
+  },
+  newsDate: {
+    ...typography.small,
+    color: colors.gold,
+    textTransform: "uppercase"
+  },
+  newsSource: {
+    ...typography.small,
+    color: colors.textDim,
+    textTransform: "uppercase"
+  },
+  newsTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    lineHeight: 19,
+    color: colors.text
+  },
+  newsSummary: {
+    ...typography.small,
+    color: colors.textMuted,
+    lineHeight: 17
+  },
+  newsAction: {
+    alignItems: "center",
+    borderColor: colors.borderSoft,
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 34,
+    justifyContent: "center",
+    width: 34
   },
   secondaryAction: {
     alignItems: "center",

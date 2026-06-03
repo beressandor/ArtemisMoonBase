@@ -4,6 +4,7 @@
     "slug": "artemis-moon-base",
     "version": "0.1.1",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "scheme": "artemismoonbase",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -17,9 +18,16 @@
       "package": "com.beressandor.artemismoonbase",
       "versionCode": 2,
       "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#010204"
+      },
       "permissions": [
         "INTERNET"
       ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "extra": {
       "supabaseUrl": "",

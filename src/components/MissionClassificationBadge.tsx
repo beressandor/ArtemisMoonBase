@@ -22,8 +22,8 @@ export function MissionClassificationBadge({ label }: MissionClassificationBadge
 const styles = StyleSheet.create({
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: "rgba(138, 232, 255, 0.11)",
-    borderColor: "rgba(138, 232, 255, 0.34)",
+    backgroundColor: "rgba(217, 212, 199, 0.09)",
+    borderColor: "rgba(217, 212, 199, 0.26)",
     borderRadius: radius.sm,
     borderWidth: 1,
     maxWidth: "100%",

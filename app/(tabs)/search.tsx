@@ -9,12 +9,13 @@ import { Panel } from "@/components/Panel";
 import { Screen } from "@/components/Screen";
 import { searchAll } from "@/lib/dataClient";
 import { useTranslation } from "@/lib/i18n";
+import { formatScheduleDisplay } from "@/lib/schedule";
 import { colors, radius, spacing, typography } from "@/lib/theme";
 
 export default function SearchScreen() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const [query, setQuery] = useState("");
-  const { data } = useQuery({ queryKey: ["search", query], queryFn: () => searchAll(query) });
+  const { data } = useQuery({ queryKey: ["search", query, language], queryFn: () => searchAll(query, language) });
   const total = (data?.missions.length ?? 0) + (data?.equipment.length ?? 0) + (data?.events.length ?? 0);
 
   return (
@@ -62,7 +63,7 @@ export default function SearchScreen() {
       {data?.events.map((event) => (
         <Panel key={event.id}>
           <Text style={styles.kicker}>
-            {t("search.event")} / {event.dateLabel}
+            {t("search.event")} / {formatScheduleDisplay(event, undefined, language).primary}
           </Text>
           <Text style={styles.title}>{event.title}</Text>
           <Text numberOfLines={2} style={styles.summary}>

@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs
   },
   selected: {
-    backgroundColor: "rgba(138, 232, 255, 0.16)",
+    backgroundColor: "rgba(217, 212, 199, 0.12)",
     borderColor: colors.blue
   },
   optionText: {

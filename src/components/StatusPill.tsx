@@ -8,13 +8,14 @@ interface StatusPillProps {
 }
 
 export function StatusPill({ status }: StatusPillProps) {
-  const color = statusColor[status];
+  const displayStatus = status === "watch" ? "planned" : status;
+  const color = statusColor[displayStatus];
   const { t } = useTranslation();
 
   return (
     <View style={[styles.pill, { borderColor: color }]}>
       <View style={[styles.dot, { backgroundColor: color }]} />
-      <Text style={styles.text}>{t(`status.${status}`)}</Text>
+      <Text style={styles.text}>{t(`status.${displayStatus}`)}</Text>
     </View>
   );
 }

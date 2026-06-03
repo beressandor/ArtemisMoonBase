@@ -1,16 +1,30 @@
-import { equipment, liveLinks, missionEvents, missions, phases, programs } from "@/data/seed";
+import { rockets } from "@/data/rockets";
+import { equipment, liveLinks, missionEvents, missions, newsItems, phases, programs } from "@/data/seed";
+import {
+  localizeEquipment,
+  localizeLiveLink,
+  localizeMission,
+  localizeMissionEvent,
+  localizeNewsItem,
+  localizePhase,
+  localizeProgram,
+  localizeRocket
+} from "@/lib/contentTranslations";
 import { supabase } from "@/lib/supabase";
-import { getNextEvent } from "@/lib/timeline";
+import { filterRoadmapVisibleEvents, getNextEvent } from "@/lib/timeline";
 import type {
   DashboardData,
   Equipment,
   LiveLink,
   Mission,
   MissionEvent,
+  NewsItem,
   Phase,
   Program,
+  Rocket,
   SourceLink
 } from "@/lib/types";
+import type { Language } from "@/store/useLanguageStore";
 
 type DbMission = {
   id: string;
@@ -96,6 +110,20 @@ type DbLiveLink = {
   last_synced_at?: string | null;
 };
 
+type DbNewsItem = {
+  id: string;
+  external_source: NewsItem["externalSource"];
+  external_id: string;
+  title: string;
+  summary: string;
+  url: string;
+  image_url?: string | null;
+  published_at?: string | null;
+  tags: string[];
+  source_urls: SourceLink[];
+  last_synced_at?: string | null;
+};
+
 const fallbackOnError = async <T>(operation: () => Promise<T>, fallback: T): Promise<T> => {
   if (!supabase) {
     return fallback;
@@ -109,7 +137,7 @@ const fallbackOnError = async <T>(operation: () => Promise<T>, fallback: T): Pro
   }
 };
 
-export const listPrograms = (): Promise<Program[]> =>
+export const listPrograms = (language: Language = "en"): Promise<Program[]> =>
   fallbackOnError(async () => {
     const { data, error } = await supabase!.from("programs").select("*").order("name");
     if (error) throw error;
@@ -119,10 +147,10 @@ export const listPrograms = (): Promise<Program[]> =>
       accent: program.accent,
       summary: program.summary,
       sourceUrls: program.source_urls ?? []
-    }));
-  }, programs);
+    })).map((program) => localizeProgram(program, language));
+  }, programs.map((program) => localizeProgram(program, language)));
 
-export const listPhases = (): Promise<Phase[]> =>
+export const listPhases = (language: Language = "en"): Promise<Phase[]> =>
   fallbackOnError(async () => {
     const { data, error } = await supabase!.from("phases").select("*").order("start_year");
     if (error) throw error;
@@ -136,10 +164,10 @@ export const listPhases = (): Promise<Phase[]> =>
       summary: phase.summary,
       focus: phase.focus ?? [],
       sourceUrls: phase.source_urls ?? []
-    }));
-  }, phases);
+    })).map((phase) => localizePhase(phase, language));
+  }, phases.map((phase) => localizePhase(phase, language)));
 
-export const listMissions = (): Promise<Mission[]> =>
+export const listMissions = (language: Language = "en"): Promise<Mission[]> =>
   fallbackOnError(async () => {
     const { data, error } = await supabase!.from("missions").select("*").order("date_label");
     if (error) throw error;
@@ -161,29 +189,32 @@ export const listMissions = (): Promise<Mission[]> =>
       heroImageUrl: mission.hero_image_url ?? undefined,
       sourceUrls: mission.source_urls ?? [],
       lastSyncedAt: mission.last_synced_at ?? undefined
-    }));
-  }, missions);
+    })).map((mission) => localizeMission(mission, language));
+  }, missions.map((mission) => localizeMission(mission, language)));
 
-export const listMissionEvents = (): Promise<MissionEvent[]> =>
+export const listMissionEvents = (language: Language = "en"): Promise<MissionEvent[]> =>
   fallbackOnError(async () => {
     const { data, error } = await supabase!.from("mission_events").select("*").order("starts_at");
     if (error) throw error;
-    return ((data ?? []) as DbMissionEvent[]).map((event) => ({
-      id: event.id,
-      missionId: event.mission_id ?? "unassigned",
-      title: event.title,
-      startsAt: event.starts_at ?? undefined,
-      dateLabel: event.date_label,
-      datePrecision: event.date_precision,
-      status: event.status,
-      summary: event.summary,
-      sourceUrls: event.source_urls ?? [],
-      externalSourceId: event.external_source ?? undefined,
-      lastSyncedAt: event.last_synced_at ?? undefined
-    }));
-  }, missionEvents);
+    return ((data ?? []) as DbMissionEvent[])
+      .filter((event) => event.mission_id)
+      .map((event) => ({
+        id: event.id,
+        missionId: event.mission_id!,
+        title: event.title,
+        startsAt: event.starts_at ?? undefined,
+        dateLabel: event.date_label,
+        datePrecision: event.date_precision,
+        status: event.status,
+        summary: event.summary,
+        sourceUrls: event.source_urls ?? [],
+        externalSourceId: event.external_source ?? undefined,
+        lastSyncedAt: event.last_synced_at ?? undefined
+      }))
+      .map((event) => localizeMissionEvent(event, language));
+  }, missionEvents.map((event) => localizeMissionEvent(event, language)));
 
-export const listEquipment = (): Promise<Equipment[]> =>
+export const listEquipment = (language: Language = "en"): Promise<Equipment[]> =>
   fallbackOnError(async () => {
     const [{ data: equipmentRows, error: equipmentError }, { data: links, error: linkError }] = await Promise.all([
       supabase!.from("equipment").select("*").order("name"),
@@ -211,10 +242,13 @@ export const listEquipment = (): Promise<Equipment[]> =>
       imageQuery: item.image_query,
       sourceUrls: item.source_urls ?? [],
       lastSyncedAt: item.last_synced_at ?? undefined
-    }));
-  }, equipment);
+    })).map((item) => localizeEquipment(item, language));
+  }, equipment.map((item) => localizeEquipment(item, language)));
 
-export const listLiveLinks = (): Promise<LiveLink[]> =>
+export const listRockets = async (language: Language = "en"): Promise<Rocket[]> =>
+  rockets.map((rocket) => localizeRocket(rocket, language));
+
+export const listLiveLinks = (language: Language = "en"): Promise<LiveLink[]> =>
   fallbackOnError(async () => {
     const { data, error } = await supabase!.from("live_links").select("*").order("title");
     if (error) throw error;
@@ -228,39 +262,111 @@ export const listLiveLinks = (): Promise<LiveLink[]> =>
       summary: link.summary,
       isEmbedSafe: link.is_embed_safe,
       lastSyncedAt: link.last_synced_at ?? undefined
-    }));
-  }, liveLinks);
+    })).map((link) => localizeLiveLink(link, language));
+  }, liveLinks.map((link) => localizeLiveLink(link, language)));
 
-export const getDashboardData = async (): Promise<DashboardData> => {
-  const [allEvents, allMissions, allEquipment, allLiveLinks] = await Promise.all([
-    listMissionEvents(),
-    listMissions(),
-    listEquipment(),
-    listLiveLinks()
+export const listNewsItems = (language: Language = "en"): Promise<NewsItem[]> =>
+  fallbackOnError(async () => {
+    const { data, error } = await supabase!.from("news_items").select("*").order("published_at", { ascending: false }).limit(3);
+    if (error) throw error;
+    return ((data ?? []) as DbNewsItem[]).map((item) => ({
+      id: item.id,
+      externalSource: item.external_source,
+      externalId: item.external_id,
+      title: item.title,
+      summary: item.summary,
+      url: item.url,
+      imageUrl: item.image_url ?? undefined,
+      publishedAt: item.published_at ?? undefined,
+      tags: item.tags ?? [],
+      sourceUrls: item.source_urls ?? [],
+      lastSyncedAt: item.last_synced_at ?? undefined
+    })).map((item) => localizeNewsItem(item, language));
+  }, newsItems.map((item) => localizeNewsItem(item, language)));
+
+const programLabels: Record<Mission["programIds"][number], string> = {
+  artemis: "Artemis",
+  "moon-base": "Moon Base",
+  clps: "CLPS",
+  gateway: "Gateway",
+  "surface-systems": "Surface Systems"
+};
+
+const getMissionProgramLabel = (mission?: Mission, language: Language = "en"): string | undefined => {
+  if (!mission) {
+    return undefined;
+  }
+
+  if (mission.programIds.includes("artemis")) {
+    return "Artemis";
+  }
+
+  if (mission.programIds.includes("moon-base")) {
+    return "Moon Base";
+  }
+
+  const labels =
+    language === "hu"
+      ? {
+          ...programLabels,
+          "surface-systems": "Felszíni rendszerek"
+        }
+      : programLabels;
+
+  return mission.programIds.map((programId) => labels[programId]).filter(Boolean).slice(0, 2).join(" / ");
+};
+
+export const getDashboardData = async (language: Language = "en"): Promise<DashboardData> => {
+  const [allEvents, allMissions, allEquipment, allLiveLinks, latestNews] = await Promise.all([
+    listMissionEvents(language),
+    listMissions(language),
+    listEquipment(language),
+    listLiveLinks(language),
+    listNewsItems(language)
   ]);
 
-  const nextEvent = getNextEvent(allEvents) ?? allEvents.find((event) => event.status === "watch") ?? allEvents[0];
+  const now = Date.now();
+  const futureEvents = allEvents.filter((event) => event.startsAt && new Date(event.startsAt).getTime() >= now);
+  const roadmapEvents = filterRoadmapVisibleEvents(allEvents, allMissions);
+  const rawNextEvent = getNextEvent(roadmapEvents) ?? roadmapEvents.find((event) => event.status === "watch") ?? roadmapEvents[0];
+  const nextEventMission = rawNextEvent ? allMissions.find((mission) => mission.id === rawNextEvent.missionId) : undefined;
+  const nextEvent =
+    rawNextEvent && nextEventMission
+      ? {
+          ...rawNextEvent,
+          title: nextEventMission.title,
+          summary: rawNextEvent.summary || nextEventMission.summary,
+          sourceUrls: rawNextEvent.sourceUrls.length > 0 ? rawNextEvent.sourceUrls : nextEventMission.sourceUrls
+        }
+      : rawNextEvent;
   const nextLaunch =
-    allEvents.find((event) => event.externalSourceId === "launch-library-2") ??
-    allEvents.find((event) => /launch|tracking/i.test(event.title));
+    futureEvents.find((event) => event.externalSourceId === "launch-library-2") ??
+    futureEvents.find((event) => /launch|tracking/i.test(event.title));
 
   return {
     nextEvent,
+    nextEventMission,
+    nextEventProgramLabel: getMissionProgramLabel(nextEventMission, language),
     nextLaunch,
+    latestNews,
     recentlyChanged: allEvents.filter((event) => event.lastSyncedAt || event.status === "watch").slice(0, 3),
     highlightedMission: allMissions.find((mission) => mission.id === "artemis-iii") ?? allMissions[0],
     highlightedEquipment: allEquipment.find((item) => item.id === "sls") ?? allEquipment[0],
     liveNow: allLiveLinks.find((link) => link.id === "nasa-live") ?? allLiveLinks[0],
     metrics: [
-      { label: "Programs", value: "5", tone: "blue" },
-      { label: "Tracked missions", value: String(allMissions.length), tone: "green" },
-      { label: "Equipment", value: String(allEquipment.length), tone: "gold" }
+      { label: language === "hu" ? "Programok" : "Programs", value: "5", tone: "blue" },
+      { label: language === "hu" ? "Követett küldetések" : "Tracked missions", value: String(allMissions.length), tone: "green" },
+      { label: language === "hu" ? "Eszközök" : "Equipment", value: String(allEquipment.length), tone: "gold" }
     ]
   };
 };
 
-export const searchAll = async (query: string) => {
-  const [allMissions, allEquipment, allEvents] = await Promise.all([listMissions(), listEquipment(), listMissionEvents()]);
+export const searchAll = async (query: string, language: Language = "en") => {
+  const [allMissions, allEquipment, allEvents] = await Promise.all([
+    listMissions(language),
+    listEquipment(language),
+    listMissionEvents(language)
+  ]);
   const value = query.trim().toLowerCase();
 
   if (!value) {

@@ -33,6 +33,13 @@ describe("schedule display utilities", () => {
     );
   });
 
+  it("sorts month-year labels by their month", () => {
+    const november = getScheduleSortTime({ dateLabel: "Nov 2026", datePrecision: "month" });
+
+    expect(november).toBe(Date.UTC(2026, 10, 1));
+    expect(november).toBeLessThan(getScheduleSortTime({ dateLabel: "2027", datePrecision: "year" }));
+  });
+
   it("sorts now ranges after concrete milestones inside the range", () => {
     const nowRange = getScheduleSortTime({ dateLabel: "Now-2029", datePrecision: "range" }, 2026);
 

@@ -1,15 +1,29 @@
 import { Pressable, StyleSheet } from "react-native";
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import { useTranslation } from "@/lib/i18n";
 import { colors, radius } from "@/lib/theme";
 
 interface BackButtonProps {
+  fallbackHref?: Href;
   onPress?: () => void;
 }
 
-export function BackButton({ onPress }: BackButtonProps) {
+export function BackButton({ fallbackHref = "/", onPress }: BackButtonProps) {
   const { t } = useTranslation();
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+      return;
+    }
+
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace(fallbackHref);
+  };
 
   return (
     <Pressable
@@ -17,7 +31,7 @@ export function BackButton({ onPress }: BackButtonProps) {
       accessibilityRole="button"
       hitSlop={8}
       style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-      onPress={onPress ?? (() => router.back())}
+      onPress={handlePress}
     >
       <ArrowLeft color={colors.text} size={24} strokeWidth={2.2} />
     </Pressable>
@@ -36,7 +50,7 @@ const styles = StyleSheet.create({
     width: 46
   },
   buttonPressed: {
-    backgroundColor: "rgba(138, 232, 255, 0.12)",
-    borderColor: "rgba(138, 232, 255, 0.38)"
+    backgroundColor: "rgba(217, 212, 199, 0.1)",
+    borderColor: "rgba(217, 212, 199, 0.32)"
   }
 });

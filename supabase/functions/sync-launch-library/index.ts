@@ -9,7 +9,8 @@ import {
 } from "../_shared/launchLibrary.ts";
 
 const LL2_BASE = "https://ll.thespacedevs.com/2.3.0";
-const LUNAR_MATCHER = /artemis|gateway|clps|moon|lunar|orion|sls|starship|nova-c|griffin|blue ghost|intuitive machines|astrobotic/i;
+const LUNAR_MATCHER =
+  /\b(?:artemis|gateway|clps|moon|lunar|orion|sls|hls|nova-c|griffin)\b|human landing system|blue ghost|intuitive machines|astrobotic/i;
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -64,11 +65,23 @@ const matchMission = (normalized: NormalizedExternalEvent, missions: Array<{ id:
     return "gateway-ppe-halo";
   }
 
-  if (/starship|hls|human landing system/i.test(haystack)) {
+  if (/\bhls\b|human landing system|starship.*(?:hls|lunar|artemis)|(?:hls|lunar|artemis).*starship/i.test(haystack)) {
     return "starship-hls-demo";
   }
 
-  if (/clps|nova-c|griffin|blue ghost|intuitive machines|astrobotic/i.test(haystack)) {
+  if (/blue moon|blue origin|endurance/i.test(haystack)) {
+    return "moon-base-i";
+  }
+
+  if (/griffin|astrobotic/i.test(haystack)) {
+    return "moon-base-ii";
+  }
+
+  if (/nova-c|intuitive machines|im-3|im 3/i.test(haystack)) {
+    return "moon-base-iii";
+  }
+
+  if (/clps|blue ghost/i.test(haystack)) {
     return "clps-cargo-cadence";
   }
 

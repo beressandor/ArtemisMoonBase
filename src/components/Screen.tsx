@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject
   },
   topBand: {
-    backgroundColor: "rgba(59, 130, 255, 0.16)",
+    backgroundColor: "rgba(95, 86, 74, 0.16)",
     height: 240,
     left: -70,
     position: "absolute",
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: "-12deg" }]
   },
   horizonBand: {
-    backgroundColor: "rgba(150, 242, 200, 0.08)",
+    backgroundColor: "rgba(216, 180, 106, 0.07)",
     bottom: 74,
     height: 88,
     left: -30,
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     top: 142
   },
   star: {
-    backgroundColor: "rgba(248, 251, 255, 0.72)",
+    backgroundColor: "rgba(245, 241, 231, 0.64)",
     borderRadius: 2,
     height: 2,
     position: "absolute",

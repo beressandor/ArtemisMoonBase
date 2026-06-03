@@ -3,6 +3,7 @@ import type {
   LiveLink,
   Mission,
   MissionEvent,
+  NewsItem,
   Phase,
   Program,
   SourceLink
@@ -23,7 +24,25 @@ const external = (label: string, url: string): SourceLink => ({
 export const sourceLinks = {
   moonBasePhases: official("NASA Moon Base Phases", "https://www.nasa.gov/moonbase-phases/"),
   moonBaseSystems: official("NASA Moon Base Systems", "https://www.nasa.gov/moonbase-systems/"),
+  lunarTerrainVehicle: official("NASA Lunar Terrain Vehicle", "https://www.nasa.gov/suits-and-rovers/lunar-terrain-vehicle/"),
+  astrolabClvImage: official("NASA Astrolab CLV-1 Image", "https://www.nasa.gov/image-detail/powerpoint-presentation-8/"),
+  lunarOutpostPegasusImage: official("NASA Lunar Outpost Pegasus Image", "https://www.nasa.gov/image-detail/pegasus-3-2/"),
+  axiomSpacesuitImage: official("NASA AxEMU Spacesuit Image", "https://www.nasa.gov/image-article/axiom-space-tests-lunar-spacesuit-at-nasas-johnson-space-center/"),
   artemis: official("NASA Artemis", "https://www.nasa.gov/humans-in-space/artemis/"),
+  artemisNewsFeed: official("NASA Artemis RSS", "https://www.nasa.gov/missions/artemis/feed/"),
+  artemisIII: official("NASA Artemis III", "https://www.nasa.gov/mission/artemis-iii/"),
+  artemisIV: official("NASA Artemis IV", "https://www.nasa.gov/mission/artemis-iv/"),
+  artemisArchitecture2026: official(
+    "NASA Artemis Architecture Update",
+    "https://www.nasa.gov/directorates/esdmd/nasa-strengthens-artemis-adds-mission-refines-overall-architecture/"
+  ),
+  gateway: official("NASA Gateway", "https://www.nasa.gov/mission/gateway/"),
+  artemisII: official("NASA Artemis II", "https://www.nasa.gov/mission/artemis-ii/"),
+  artemisIILaunch: official("NASA Artemis II Launch", "https://www.nasa.gov/gallery/artemis-ii-launch/"),
+  artemisIIComplete: official(
+    "NASA Artemis II Return",
+    "https://www.nasa.gov/news-release/nasa-welcomes-record-setting-artemis-ii-moonfarers-back-to-earth/"
+  ),
   nasaLive: official("NASA Live", "https://www.nasa.gov/live/"),
   launchLibrary: external("Launch Library 2", "https://ll.thespacedevs.com/docs"),
   nasaImages: official("NASA Images", "https://images.nasa.gov/docs/images.nasa.gov_api_docs.pdf"),
@@ -55,7 +74,8 @@ const moonBaseHeroImages = {
 } as const;
 
 const artemisHeroImages = {
-  artemisII: "https://images-assets.nasa.gov/image/NHQ202211160008/NHQ202211160008~large.jpg",
+  artemisII:
+    "https://images-assets.nasa.gov/image/SLS_MAF_20260401_Artemis%20II%20Launch-293/SLS_MAF_20260401_Artemis%20II%20Launch-293~large.jpg",
   artemisIII: "https://www.nasa.gov/wp-content/uploads/2023/04/51476988575-254f09eb06-o.jpg?w=1536",
   starshipHlsDemo: "https://www.nasa.gov/wp-content/uploads/2024/11/11-03-24-artemis-3-on-surface.jpg?w=1024",
   gatewayPpeHalo: "https://www.nasa.gov/wp-content/uploads/2023/06/artemis-gateway-artemis-iv-gateway-landscapeorig.png?w=2048",
@@ -68,6 +88,9 @@ const equipmentImages = {
   orion: "https://images-assets.nasa.gov/image/art001e000672/art001e000672~orig.jpg",
   starshipHls: "https://www.nasa.gov/wp-content/uploads/2023/01/spacex_starship_hls_artemis_iii_2_crew_0_0.jpg",
   gateway: "https://www.nasa.gov/wp-content/uploads/2023/03/gateway-full-configuration-hero-image-121123.png",
+  astrolabClv1: "https://www.nasa.gov/wp-content/uploads/2024/04/astrolab-clv-1-03.jpeg",
+  lunarOutpostPegasus: "https://www.nasa.gov/wp-content/uploads/2024/04/pegasus-3-1.png?w=1024",
+  spacesuits: "https://images-assets.nasa.gov/image/jsc2026e002504/jsc2026e002504~large.jpg",
   surfacePower: moonBaseHeroImages.solarPower,
   ...moonBaseHeroImages
 } as const;
@@ -76,7 +99,7 @@ export const programs: Program[] = [
   {
     id: "moon-base",
     name: "Moon Base",
-    accent: "#8FE3FF",
+    accent: "#D9D4C7",
     summary: "NASA's phased path toward sustained lunar surface operations.",
     sourceUrls: [sourceLinks.moonBasePhases]
   },
@@ -90,21 +113,21 @@ export const programs: Program[] = [
   {
     id: "gateway",
     name: "Gateway",
-    accent: "#C7D2FE",
+    accent: "#AFA79A",
     summary: "A lunar-orbit platform for crew staging, science, logistics, and communications.",
     sourceUrls: [sourceLinks.artemis]
   },
   {
     id: "clps",
     name: "CLPS",
-    accent: "#F8C471",
+    accent: "#D8B46A",
     summary: "Commercial lunar deliveries carrying NASA science and technology payloads.",
     sourceUrls: [sourceLinks.moonBaseSystems]
   },
   {
     id: "surface-systems",
     name: "Surface Systems",
-    accent: "#9BE7C8",
+    accent: "#9BC79A",
     summary: "Rovers, habitats, power, communications, and science systems for longer stays.",
     sourceUrls: [sourceLinks.moonBaseSystems]
   }
@@ -162,7 +185,7 @@ export const missions: Mission[] = [
       "Deploy initial surface power and communications",
       "Validate rover and cargo operations"
     ],
-    equipmentIds: ["nova-c", "griffin", "viper", "ltv", "lunar-surface-power"],
+    equipmentIds: ["nova-c", "griffin", "viper", "astrolab-clv-1", "lunar-outpost-pegasus", "lunar-surface-power"],
     sourceUrls: [sourceLinks.moonBasePhases, sourceLinks.moonBaseSystems]
   },
   {
@@ -171,30 +194,36 @@ export const missions: Mission[] = [
     subtitle: "Crewed lunar flyby",
     programIds: ["artemis"],
     phaseId: "phase-one",
-    status: "watch",
-    dateLabel: "Schedule watch",
-    datePrecision: "tbd",
-    summary: "The first crewed Artemis flight test will send astronauts around the Moon and back aboard Orion.",
-    objectives: ["Validate Orion life support", "Demonstrate crew operations", "Return safely after lunar flyby"],
+    status: "completed",
+    startsAt: "2026-04-01T22:35:00Z",
+    dateLabel: "2026.04.01",
+    datePrecision: "exact",
+    summary:
+      "The first crewed Artemis flight test sent astronauts around the Moon and back aboard Orion, completing splashdown on April 10, 2026.",
+    objectives: ["Validated Orion life support", "Demonstrated crew operations", "Returned safely after lunar flyby"],
     equipmentIds: ["sls", "orion"],
     heroImageUrl: artemisHeroImages.artemisII,
-    sourceUrls: [sourceLinks.artemis, sourceLinks.launchLibrary]
+    sourceUrls: [sourceLinks.artemisII, sourceLinks.artemisIILaunch, sourceLinks.artemisIIComplete]
   },
   {
     id: "artemis-iii",
     title: "Artemis III",
-    subtitle: "Crewed lunar landing architecture",
+    subtitle: "LEO rendezvous and docking demonstration",
     programIds: ["artemis", "surface-systems"],
     phaseId: "phase-one",
     status: "in-development",
-    dateLabel: "2027 planning baseline",
+    dateLabel: "2027",
     datePrecision: "year",
-    summary: "Targets the next major crewed lunar surface milestone with Orion, SLS, spacesuits, and a Human Landing System.",
-    objectives: ["Crew lunar surface operations", "Validate HLS crew transfer", "Return samples and surface data"],
-    equipmentIds: ["sls", "orion", "starship-hls", "xemu-suits"],
-    landingRegion: "Lunar south polar region",
+    summary:
+      "NASA's Artemis III mission will launch crew in Orion on SLS to low Earth orbit and test rendezvous and docking capabilities between Orion and one or both commercial lunar landers from SpaceX and Blue Origin.",
+    objectives: [
+      "Launch crew to Earth orbit aboard Orion and SLS",
+      "Test Orion rendezvous and docking with commercial lander systems",
+      "Mature operations needed for future crewed lunar landings"
+    ],
+    equipmentIds: ["sls", "orion", "starship-hls", "blue-moon"],
     heroImageUrl: artemisHeroImages.artemisIII,
-    sourceUrls: [sourceLinks.artemis, sourceLinks.launchLibrary]
+    sourceUrls: [sourceLinks.artemisIII, sourceLinks.artemis]
   },
   {
     id: "starship-hls-demo",
@@ -214,45 +243,61 @@ export const missions: Mission[] = [
   {
     id: "gateway-ppe-halo",
     title: "Gateway PPE + HALO",
-    subtitle: "First Gateway elements",
+    subtitle: "Gateway architecture watch",
     programIds: ["gateway", "artemis"],
     phaseId: "phase-one",
-    status: "in-development",
-    dateLabel: "Late 2020s",
-    datePrecision: "range",
-    summary: "The Power and Propulsion Element and HALO habitation module form the first Gateway configuration.",
-    objectives: ["Deploy lunar-orbit staging platform", "Provide power and propulsion", "Enable crew logistics"],
+    status: "watch",
+    dateLabel: "NET 2027",
+    datePrecision: "year",
+    summary:
+      "NASA still lists Gateway and its PPE/HALO first elements as a future mission targeting launch no earlier than 2027, but the refined 2026 Artemis architecture no longer presents Gateway as the near-term Artemis IV milestone, so this item remains under architecture watch.",
+    objectives: [
+      "Track whether NASA keeps PPE/HALO in the active lunar architecture",
+      "Monitor launch timing and partner commitments for Gateway's first elements",
+      "Keep Gateway separate from confirmed Artemis surface mission milestones"
+    ],
     equipmentIds: ["gateway", "halo", "ppe"],
     heroImageUrl: artemisHeroImages.gatewayPpeHalo,
-    sourceUrls: [sourceLinks.artemis, sourceLinks.launchLibrary]
+    sourceUrls: [sourceLinks.gateway, sourceLinks.artemisArchitecture2026, sourceLinks.artemis]
   },
   {
     id: "artemis-iv",
     title: "Artemis IV",
-    subtitle: "Gateway assembly and lunar mission",
-    programIds: ["artemis", "gateway"],
+    subtitle: "Humanity's return to the lunar surface",
+    programIds: ["artemis", "surface-systems"],
     phaseId: "phase-one",
     status: "planned",
-    dateLabel: "Early 2028 planning baseline",
+    dateLabel: "Early 2028",
     datePrecision: "half",
-    summary: "Planned to expand Gateway capability while continuing crewed lunar exploration operations.",
-    objectives: ["Deliver Gateway elements", "Support crewed lunar campaign", "Extend deep-space logistics"],
-    equipmentIds: ["sls", "orion", "gateway", "ihab"],
+    summary:
+      "NASA continues to target early 2028 for the first Artemis lunar landing. After reaching lunar orbit, two crew members will transfer from Orion to a commercial lunar lander and spend about a week near the Moon's South Pole.",
+    objectives: [
+      "Return astronauts to the lunar surface near the South Pole",
+      "Conduct about a week of field science, observations, and sample work",
+      "Demonstrate Orion-to-lander transfer and surface EVA operations"
+    ],
+    equipmentIds: ["sls", "orion", "starship-hls", "blue-moon", "xemu-suits"],
+    landingRegion: "Lunar South Pole candidate regions",
     heroImageUrl: artemisHeroImages.artemisIV,
-    sourceUrls: [sourceLinks.artemis]
+    sourceUrls: [sourceLinks.artemisIV, sourceLinks.artemis]
   },
   {
     id: "artemis-v",
     title: "Artemis V",
-    subtitle: "Surface mobility expansion",
+    subtitle: "Lunar surface mission cadence",
     programIds: ["artemis", "surface-systems"],
     phaseId: "phase-one",
     status: "planned",
-    dateLabel: "Late 2028 planning baseline",
+    dateLabel: "Late 2028",
     datePrecision: "half",
-    summary: "Planned as an expanding surface mission with stronger mobility and infrastructure dependencies.",
-    objectives: ["Increase surface exploration range", "Integrate next-generation surface systems", "Advance lunar base operations"],
-    equipmentIds: ["sls", "orion", "blue-moon", "ltv", "gateway"],
+    summary:
+      "NASA expects to launch Artemis V as a lunar surface mission by late 2028 using the standard SLS rocket configuration, with subsequent Artemis missions planned roughly once per year.",
+    objectives: [
+      "Continue crewed lunar surface exploration after Artemis IV",
+      "Use the standard SLS rocket configuration",
+      "Build toward roughly annual Artemis surface missions"
+    ],
+    equipmentIds: ["sls", "orion", "blue-moon", "astrolab-clv-1", "lunar-outpost-pegasus"],
     heroImageUrl: artemisHeroImages.artemisV,
     sourceUrls: [sourceLinks.artemis]
   },
@@ -370,7 +415,7 @@ export const missions: Mission[] = [
       "Support teleoperation and early exploration",
       "Prepare longer-range surface traverses"
     ],
-    equipmentIds: ["ltv", "blue-moon"],
+    equipmentIds: ["astrolab-clv-1", "lunar-outpost-pegasus", "blue-moon"],
     landingRegion: "Lunar South Pole region",
     heroImageUrl: moonBaseHeroImages.lunarTerrainVehicles,
     sourceUrls: [sourceLinks.moonBasePhases]
@@ -839,23 +884,25 @@ export const missionEvents: MissionEvent[] = [
   {
     id: "artemis-ii-schedule-watch",
     missionId: "artemis-ii",
-    title: "Artemis II launch tracking",
-    dateLabel: "Tracked by LL2",
-    datePrecision: "tbd",
-    status: "watch",
-    summary: "Schedule should be refreshed from Launch Library 2 and official NASA updates.",
-    sourceUrls: [sourceLinks.artemis, sourceLinks.launchLibrary],
+    title: "Artemis II launch",
+    startsAt: "2026-04-01T22:35:00Z",
+    dateLabel: "2026.04.01",
+    datePrecision: "exact",
+    status: "completed",
+    summary:
+      "NASA's SLS rocket launched Orion and the Artemis II crew from Launch Complex 39B on April 1, 2026.",
+    sourceUrls: [sourceLinks.artemisIILaunch, sourceLinks.artemisIIComplete],
     externalSourceId: "launch-library-2"
   },
   {
-    id: "artemis-iii-landing-campaign",
+    id: "artemis-iii-leo-demo",
     missionId: "artemis-iii",
-    title: "Crewed landing campaign",
-    dateLabel: "2027 planning baseline",
+    title: "LEO rendezvous and docking demonstration",
+    dateLabel: "2027",
     datePrecision: "year",
     status: "in-development",
-    summary: "Major crewed landing milestone connected to HLS demonstration and spacesuit readiness.",
-    sourceUrls: [sourceLinks.artemis]
+    summary: "Artemis III will test integrated operations between Orion and one or both commercial lunar landers in low Earth orbit.",
+    sourceUrls: [sourceLinks.artemisIII, sourceLinks.artemis]
   },
   {
     id: "starship-hls-demo-event",
@@ -864,28 +911,28 @@ export const missionEvents: MissionEvent[] = [
     dateLabel: "2027 watch",
     datePrecision: "year",
     status: "watch",
-    summary: "Dynamic date should be resolved from Launch Library 2 when a public event or launch record is available.",
+    summary: "Dynamic date should be resolved when a public event or launch record is available.",
     sourceUrls: [sourceLinks.launchLibrary]
   },
   {
     id: "gateway-initial-elements",
     missionId: "gateway-ppe-halo",
-    title: "Initial Gateway element launch",
-    dateLabel: "Late 2020s",
-    datePrecision: "range",
-    status: "in-development",
-    summary: "PPE and HALO establish Gateway's first lunar-orbit configuration.",
-    sourceUrls: [sourceLinks.artemis, sourceLinks.launchLibrary]
+    title: "PPE/HALO launch status watch",
+    dateLabel: "NET 2027",
+    datePrecision: "year",
+    status: "watch",
+    summary: "NASA's Gateway page still lists PPE/HALO as a future launch target, while the near-term Artemis architecture has been refined around surface missions.",
+    sourceUrls: [sourceLinks.gateway, sourceLinks.artemisArchitecture2026, sourceLinks.artemis]
   },
   {
     id: "artemis-iv-window",
     missionId: "artemis-iv",
-    title: "Artemis IV planning window",
+    title: "First Artemis lunar surface landing target",
     dateLabel: "Early 2028",
     datePrecision: "half",
     status: "planned",
-    summary: "Gateway assembly and crewed lunar campaign milestone.",
-    sourceUrls: [sourceLinks.artemis]
+    summary: "NASA continues to target early 2028 for the first Artemis lunar landing near the Moon's South Pole.",
+    sourceUrls: [sourceLinks.artemisIV, sourceLinks.artemis]
   },
   {
     id: "artemis-v-window",
@@ -894,7 +941,7 @@ export const missionEvents: MissionEvent[] = [
     dateLabel: "Late 2028",
     datePrecision: "half",
     status: "planned",
-    summary: "Surface mobility and expanded exploration milestone.",
+    summary: "NASA expects to launch this lunar surface mission by late 2028 using the standard SLS rocket configuration.",
     sourceUrls: [sourceLinks.artemis]
   },
   {
@@ -904,7 +951,7 @@ export const missionEvents: MissionEvent[] = [
     dateLabel: "Rolling schedule",
     datePrecision: "tbd",
     status: "active",
-    summary: "Upcoming CLPS launches and landings should be refreshed from Launch Library 2.",
+    summary: "Upcoming CLPS launches and landings should be refreshed automatically as schedules change.",
     sourceUrls: [sourceLinks.moonBaseSystems, sourceLinks.launchLibrary]
   },
   {
@@ -978,7 +1025,7 @@ export const equipment: Equipment[] = [
       { label: "Provider", value: "SpaceX" },
       { label: "Dependency", value: "Uncrewed demo before crew use" }
     ],
-    relatedMissionIds: ["artemis-iii", "starship-hls-demo"],
+    relatedMissionIds: ["artemis-iii", "artemis-iv", "starship-hls-demo"],
     imageUrl: equipmentImages.starshipHls,
     imageQuery: "NASA Starship Human Landing System Artemis",
     sourceUrls: [sourceLinks.artemis, sourceLinks.nasaImages]
@@ -995,7 +1042,7 @@ export const equipment: Equipment[] = [
       { label: "Provider", value: "Blue Origin" },
       { label: "Program", value: "Artemis / CLPS" }
     ],
-    relatedMissionIds: ["artemis-v", "moon-base-i", "viper-moon-base", "lunar-terrain-vehicles-phase-one"],
+    relatedMissionIds: ["artemis-iii", "artemis-iv", "artemis-v", "moon-base-i", "viper-moon-base", "lunar-terrain-vehicles-phase-one"],
     imageUrl: equipmentImages.moonBaseI,
     imageQuery: "NASA Blue Moon lunar lander",
     sourceUrls: [sourceLinks.artemis, sourceLinks.nasaImages]
@@ -1052,21 +1099,42 @@ export const equipment: Equipment[] = [
     sourceUrls: [sourceLinks.moonBaseSystems, sourceLinks.nasaImages]
   },
   {
-    id: "ltv",
-    name: "Lunar Terrain Vehicle",
+    id: "astrolab-clv-1",
+    name: "Astrolab CLV-1",
     category: "rover",
-    owner: "NASA / Commercial providers",
+    owner: "Astrolab",
     status: "in-development",
-    summary: "Unpressurized rover capability for crewed Artemis surface exploration.",
+    summary:
+      "Astrolab's Crewed Lunar Vehicle, adapted from FLEX architecture, is a Phase One LTV for astronaut transport, supplies, and remote operations.",
     specs: [
-      { label: "Role", value: "Crew surface mobility" },
+      { label: "Award", value: "$219M Phase 1 LTV task order" },
+      { label: "Target", value: "Lunar surface deployment by 2028" },
       { label: "Mode", value: "Crewed and remotely operated" },
-      { label: "Program", value: "Artemis surface systems" }
+      { label: "Capability", value: "About 2,000 lb; more than 6 mph on level terrain" }
     ],
     relatedMissionIds: ["artemis-v", "moon-base-phase-one", "lunar-terrain-vehicles-phase-one"],
-    imageUrl: equipmentImages.lunarTerrainVehicles,
-    imageQuery: "NASA Lunar Terrain Vehicle Artemis",
-    sourceUrls: [sourceLinks.moonBaseSystems, sourceLinks.nasaImages]
+    imageUrl: equipmentImages.astrolabClv1,
+    imageQuery: "NASA Astrolab CLV-1 lunar terrain vehicle",
+    sourceUrls: [sourceLinks.moonBaseSystems, sourceLinks.lunarTerrainVehicle, sourceLinks.astrolabClvImage]
+  },
+  {
+    id: "lunar-outpost-pegasus",
+    name: "Lunar Outpost Pegasus",
+    category: "rover",
+    owner: "Lunar Outpost",
+    status: "in-development",
+    summary:
+      "Lunar Outpost's Pegasus is a mission-ready evolution of Eagle, built for NASA's updated LTV requirements and early Moon Base mobility.",
+    specs: [
+      { label: "Award", value: "$220M Phase 1 LTV task order" },
+      { label: "Target", value: "Lunar surface deployment by 2028" },
+      { label: "Mode", value: "Manual, autonomous, or teleoperated" },
+      { label: "Capability", value: "Up to one year of operations; more than 9 mph" }
+    ],
+    relatedMissionIds: ["artemis-v", "moon-base-phase-one", "lunar-terrain-vehicles-phase-one"],
+    imageUrl: equipmentImages.lunarOutpostPegasus,
+    imageQuery: "NASA Lunar Outpost Pegasus lunar terrain vehicle",
+    sourceUrls: [sourceLinks.moonBaseSystems, sourceLinks.lunarTerrainVehicle, sourceLinks.lunarOutpostPegasusImage]
   },
   {
     id: "pressurized-rover",
@@ -1089,18 +1157,18 @@ export const equipment: Equipment[] = [
     id: "gateway",
     name: "Gateway",
     category: "station",
-    owner: "NASA / International partners",
-    status: "in-development",
-    summary: "Lunar orbit station for staging, science, logistics, and communications.",
+    owner: "NASA / Partners",
+    status: "watch",
+    summary: "Lunar orbit station concept for staging, science, logistics, and communications, currently tracked as an Artemis architecture watch item.",
     specs: [
       { label: "Orbit", value: "Near-rectilinear halo orbit" },
       { label: "Role", value: "Lunar staging and science" },
       { label: "Elements", value: "PPE, HALO, I-HAB, logistics" }
     ],
-    relatedMissionIds: ["gateway-ppe-halo", "artemis-iv", "phase-two-sustained-stays"],
+    relatedMissionIds: ["gateway-ppe-halo", "phase-two-sustained-stays"],
     imageUrl: equipmentImages.gateway,
     imageQuery: "NASA Gateway lunar orbit station",
-    sourceUrls: [sourceLinks.artemis, sourceLinks.nasaImages]
+    sourceUrls: [sourceLinks.gateway, sourceLinks.artemisArchitecture2026, sourceLinks.nasaImages]
   },
   {
     id: "lunar-surface-power",
@@ -1197,7 +1265,7 @@ export const equipment: Equipment[] = [
     id: "site-logistics-rovers",
     name: "Site Logistics Rovers",
     category: "rover",
-    owner: "NASA / Commercial providers",
+    owner: "NASA / Partners",
     status: "planned",
     summary: "Robotic rovers for site preparation, regolith handling, cargo movement, and surface logistics.",
     specs: [
@@ -1282,7 +1350,7 @@ export const equipment: Equipment[] = [
     id: "cargo-return-system",
     name: "Cargo Return System",
     category: "science",
-    owner: "NASA / Commercial providers",
+    owner: "NASA / Partners",
     status: "planned",
     summary: "Uncrewed return capability for lunar samples, research payloads, and hardware from the surface back to Earth.",
     specs: [
@@ -1324,9 +1392,10 @@ export const equipment: Equipment[] = [
       { label: "Environment", value: "Lunar south pole" },
       { label: "Program", value: "Artemis" }
     ],
-    relatedMissionIds: ["artemis-iii"],
+    relatedMissionIds: ["artemis-iv"],
+    imageUrl: equipmentImages.spacesuits,
     imageQuery: "NASA Artemis lunar spacesuit Axiom",
-    sourceUrls: [sourceLinks.artemis, sourceLinks.nasaImages]
+    sourceUrls: [sourceLinks.artemis, sourceLinks.nasaImages, sourceLinks.axiomSpacesuitImage]
   }
 ];
 
@@ -1355,12 +1424,12 @@ export const liveLinks: LiveLink[] = [
   },
   {
     id: "ll2-upcoming",
-    title: "Launch Library Countdown",
+    title: "Launch Countdown",
     type: "launch-countdown",
-    provider: "The Space Devs",
-    url: "https://ll.thespacedevs.com/docs",
+    provider: "Mission schedule",
+    url: "https://www.nasa.gov/events/",
     status: "active",
-    summary: "Upcoming launch and event timing source for automated schedule refreshes.",
+    summary: "Upcoming launch and event timing context for automated schedule refreshes.",
     isEmbedSafe: false
   },
   {
@@ -1382,5 +1451,47 @@ export const liveLinks: LiveLink[] = [
     status: "active",
     summary: "Deep Space Network activity view for spacecraft communication context.",
     isEmbedSafe: true
+  }
+];
+
+export const newsItems: NewsItem[] = [
+  {
+    id: "nasa-artemis-spacewalking-scott-wray-2026",
+    externalSource: "nasa-artemis-rss",
+    externalId: "https://www.nasa.gov/centers-and-facilities/johnson/spacewalking-with-scott-wray-artemis-eva-training-lead/",
+    title: "Spacewalking With Scott Wray, Artemis EVA Training Lead",
+    summary:
+      "NASA profiles Artemis EVA training work for lunar surface operations, including spacesuit testing and spacewalk preparation.",
+    url: "https://www.nasa.gov/centers-and-facilities/johnson/spacewalking-with-scott-wray-artemis-eva-training-lead/",
+    publishedAt: "2026-06-02T09:00:00Z",
+    tags: ["Artemis", "EVA", "Spacesuits"],
+    sourceUrls: [sourceLinks.artemisNewsFeed],
+    lastSyncedAt: "2026-06-02T09:00:00Z"
+  },
+  {
+    id: "nasa-artemis-daniel-stubbs-2026",
+    externalSource: "nasa-artemis-rss",
+    externalId: "https://www.nasa.gov/missions/artemis/i-am-artemis/i-am-artemis-daniel-stubbs/",
+    title: "I Am Artemis: Daniel Stubbs",
+    summary:
+      "NASA highlights engineering work tied to Artemis human landing systems and the challenges of lunar dust during Moon landings.",
+    url: "https://www.nasa.gov/missions/artemis/i-am-artemis/i-am-artemis-daniel-stubbs/",
+    publishedAt: "2026-05-28T21:58:20Z",
+    tags: ["Artemis", "HLS", "Lunar dust"],
+    sourceUrls: [sourceLinks.artemisNewsFeed],
+    lastSyncedAt: "2026-06-02T09:00:00Z"
+  },
+  {
+    id: "nasa-lunabotics-2026",
+    externalSource: "nasa-artemis-rss",
+    externalId: "https://www.nasa.gov/centers-and-facilities/kennedy/nasas-2026-lunabotics-winning-student-teams-engineering-lunar-future/",
+    title: "NASA's 2026 Lunabotics: Winning Student Teams Engineering Lunar Future",
+    summary:
+      "NASA's Lunabotics Challenge connects autonomous lunar surface engineering with the agency's permanent Moon Base plans.",
+    url: "https://www.nasa.gov/centers-and-facilities/kennedy/nasas-2026-lunabotics-winning-student-teams-engineering-lunar-future/",
+    publishedAt: "2026-05-27T13:02:09Z",
+    tags: ["Moon Base", "Lunabotics", "Surface systems"],
+    sourceUrls: [sourceLinks.artemisNewsFeed],
+    lastSyncedAt: "2026-06-02T09:00:00Z"
   }
 ];

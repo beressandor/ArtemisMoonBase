@@ -2,6 +2,7 @@ import { StyleSheet, View } from "react-native";
 import { Image } from "expo-image";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { getMediaImageSource } from "@/lib/mediaAssets";
 
 interface ZoomableImageProps {
   uri: string;
@@ -71,7 +72,7 @@ export function ZoomableImage({ uri, maxScale = 4 }: ZoomableImageProps) {
     <View style={styles.viewport}>
       <GestureDetector gesture={Gesture.Simultaneous(pinch, pan, doubleTap)}>
         <Animated.View style={[styles.imageFrame, imageStyle]}>
-          <Image source={{ uri }} style={styles.image} contentFit="contain" transition={180} />
+          <Image source={getMediaImageSource(uri)} style={styles.image} contentFit="contain" transition={180} />
         </Animated.View>
       </GestureDetector>
     </View>

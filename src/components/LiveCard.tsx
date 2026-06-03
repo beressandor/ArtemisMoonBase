@@ -59,8 +59,8 @@ const styles = StyleSheet.create({
   },
   icon: {
     alignItems: "center",
-    backgroundColor: "rgba(138, 232, 255, 0.1)",
-    borderColor: "rgba(138, 232, 255, 0.28)",
+    backgroundColor: "rgba(217, 212, 199, 0.08)",
+    borderColor: "rgba(217, 212, 199, 0.22)",
     borderRadius: radius.sm,
     borderWidth: 1,
     height: 36,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   action: {
     alignItems: "center",
     backgroundColor: colors.panelGlass,
-    borderColor: "rgba(138, 232, 255, 0.32)",
+    borderColor: "rgba(217, 212, 199, 0.26)",
     borderWidth: 1,
     borderRadius: radius.sm,
     justifyContent: "center",

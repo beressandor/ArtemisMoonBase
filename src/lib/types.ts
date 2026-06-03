@@ -26,6 +26,13 @@ export type DatePrecision =
 
 export type SourceConfidence = "official" | "derived" | "watch" | "external";
 
+export type UnitSystem = "metric" | "imperial";
+
+export interface UnitDisplayValue {
+  metric: string;
+  imperial: string;
+}
+
 export type EquipmentCategory =
   | "launch"
   | "crew"
@@ -112,6 +119,35 @@ export interface Equipment {
   lastSyncedAt?: string;
 }
 
+export interface RocketEngine {
+  id: string;
+  name: string;
+  role: string;
+  count: string;
+  propellant: string;
+  thrust?: string | UnitDisplayValue;
+  imageUrl?: string;
+  summary: string;
+  specs: Array<{ label: string; value: string | UnitDisplayValue }>;
+  sourceUrls: SourceLink[];
+}
+
+export interface Rocket {
+  id: string;
+  name: string;
+  owner: string;
+  status: MissionStatus;
+  summary: string;
+  specs: Array<{ label: string; value: string | UnitDisplayValue }>;
+  keyMetrics: Array<{ label: string; value: string | UnitDisplayValue }>;
+  engines: RocketEngine[];
+  relatedMissionIds: string[];
+  imageUrl?: string;
+  cardImageUrl?: string;
+  sourceUrls: SourceLink[];
+  lastSyncedAt?: string;
+}
+
 export interface LiveLink {
   id: string;
   title: string;
@@ -124,9 +160,26 @@ export interface LiveLink {
   lastSyncedAt?: string;
 }
 
+export interface NewsItem {
+  id: string;
+  externalSource: "nasa-artemis-rss";
+  externalId: string;
+  title: string;
+  summary: string;
+  url: string;
+  imageUrl?: string;
+  publishedAt?: string;
+  tags: string[];
+  sourceUrls: SourceLink[];
+  lastSyncedAt?: string;
+}
+
 export interface DashboardData {
   nextEvent?: MissionEvent;
+  nextEventMission?: Mission;
+  nextEventProgramLabel?: string;
   nextLaunch?: MissionEvent;
+  latestNews: NewsItem[];
   recentlyChanged: MissionEvent[];
   highlightedMission?: Mission;
   highlightedEquipment?: Equipment;

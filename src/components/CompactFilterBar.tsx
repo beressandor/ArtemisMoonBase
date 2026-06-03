@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.xs,
     minHeight: 38,
-    minWidth: 112,
+    minWidth: 96,
     paddingHorizontal: spacing.sm
   },
   search: {
@@ -146,15 +146,15 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     borderWidth: 1,
     flexDirection: "row",
-    gap: 2,
+    gap: spacing.xs,
     minHeight: 38,
-    minWidth: 74,
-    paddingHorizontal: spacing.xs,
+    minWidth: 88,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 3
   },
   selectButtonOpen: {
-    backgroundColor: "rgba(138, 232, 255, 0.12)",
-    borderColor: "rgba(138, 232, 255, 0.3)"
+    backgroundColor: "rgba(217, 212, 199, 0.1)",
+    borderColor: "rgba(217, 212, 199, 0.26)"
   },
   selectCopy: {
     flex: 1,
@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     alignItems: "center",
-    backgroundColor: "rgba(138, 232, 255, 0.1)",
-    borderColor: "rgba(138, 232, 255, 0.26)",
+    backgroundColor: "rgba(217, 212, 199, 0.08)",
+    borderColor: "rgba(217, 212, 199, 0.22)",
     borderRadius: radius.sm,
     borderWidth: 1,
     height: 38,
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     width: 34
   },
   dropdown: {
-    backgroundColor: "rgba(7, 11, 18, 0.98)",
+    backgroundColor: "rgba(7, 7, 7, 0.98)",
     borderColor: colors.borderSoft,
     borderRadius: radius.sm,
     borderWidth: 1,
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md
   },
   optionSelected: {
-    backgroundColor: "rgba(138, 232, 255, 0.14)"
+    backgroundColor: "rgba(217, 212, 199, 0.12)"
   },
   optionText: {
     ...typography.small,

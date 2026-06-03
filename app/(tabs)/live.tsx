@@ -11,8 +11,8 @@ import { useTranslation } from "@/lib/i18n";
 import { colors, radius, spacing, typography } from "@/lib/theme";
 
 export default function LiveScreen() {
-  const { t } = useTranslation();
-  const { data = [], isLoading } = useQuery({ queryKey: ["live-links"], queryFn: listLiveLinks });
+  const { language, t } = useTranslation();
+  const { data = [], isLoading } = useQuery({ queryKey: ["live-links", language], queryFn: () => listLiveLinks(language) });
   const trackingPreview = useMemo(() => data.find((link) => link.isEmbedSafe && link.type === "tracking"), [data]);
 
   return (

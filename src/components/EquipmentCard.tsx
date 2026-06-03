@@ -20,20 +20,30 @@ export function EquipmentCard({ item }: EquipmentCardProps) {
         <MediaImage url={item.imageUrl} style={styles.image} />
         <View style={styles.imageShade} />
         <View style={styles.body}>
-          <Text style={styles.category}>{t(`category.${item.category}`).toUpperCase()}</Text>
+          <View style={styles.metaRow}>
+            <Text style={styles.category}>{t(`category.${item.category}`).toUpperCase()}</Text>
+            <View style={styles.badgeRow}>
+              <SupplierBadge owner={item.owner} />
+              <StatusPill status={item.status} />
+            </View>
+          </View>
           <Text style={styles.title}>{item.name}</Text>
           <Text numberOfLines={3} style={styles.summary}>
             {item.summary}
           </Text>
-          <View style={styles.footer}>
-            <Text numberOfLines={1} style={styles.owner}>
-              {item.owner}
-            </Text>
-            <StatusPill status={item.status} />
-          </View>
         </View>
       </Panel>
     </Pressable>
+  );
+}
+
+export function SupplierBadge({ owner }: { owner: string }) {
+  return (
+    <View style={styles.supplierBadge}>
+      <Text numberOfLines={1} style={styles.supplierBadgeText}>
+        {owner}
+      </Text>
+    </View>
   );
 }
 
@@ -66,23 +76,41 @@ const styles = StyleSheet.create({
     color: colors.gold,
     textTransform: "uppercase"
   },
+  metaRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    justifyContent: "space-between"
+  },
+  badgeRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexShrink: 1,
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    justifyContent: "flex-end"
+  },
   title: {
     ...typography.h2,
     color: colors.text
   },
+  supplierBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: colors.panelGlass,
+    borderColor: colors.borderSoft,
+    borderRadius: 8,
+    borderWidth: 1,
+    maxWidth: 150,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs
+  },
+  supplierBadgeText: {
+    ...typography.small,
+    color: colors.textMuted
+  },
   summary: {
     ...typography.body,
     color: colors.textMuted
-  },
-  footer: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.md,
-    justifyContent: "space-between"
-  },
-  owner: {
-    ...typography.small,
-    color: colors.textDim,
-    flex: 1
   }
 });

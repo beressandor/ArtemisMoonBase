@@ -6,6 +6,7 @@ import { Link as LinkIcon, Maximize2 } from "lucide-react-native";
 import { BackButton } from "@/components/BackButton";
 import { ImageViewerModal } from "@/components/ImageViewerModal";
 import { MediaImage } from "@/components/MediaImage";
+import { SupplierBadge } from "@/components/EquipmentCard";
 import { Panel } from "@/components/Panel";
 import { Screen } from "@/components/Screen";
 import { SourceLinks } from "@/components/SourceLinks";
@@ -13,15 +14,18 @@ import { StatusPill } from "@/components/StatusPill";
 import { listEquipment, listMissions } from "@/lib/dataClient";
 import { useTranslation } from "@/lib/i18n";
 import { colors, spacing, typography } from "@/lib/theme";
+import { formatMeasurementText } from "@/lib/unitDisplay";
+import { useUnitStore } from "@/store/useUnitStore";
 
 export default function EquipmentDetailScreen() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
+  const unitSystem = useUnitStore((state) => state.unitSystem);
   const [imageOpen, setImageOpen] = useState(false);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading } = useQuery({
-    queryKey: ["equipment-detail", id],
+    queryKey: ["equipment-detail", id, language],
     queryFn: async () => {
-      const [allEquipment, allMissions] = await Promise.all([listEquipment(), listMissions()]);
+      const [allEquipment, allMissions] = await Promise.all([listEquipment(language), listMissions(language)]);
       return { allEquipment, allMissions };
     }
   });
@@ -40,7 +44,7 @@ export default function EquipmentDetailScreen() {
   if (!item) {
     return (
       <Screen>
-        <BackButton />
+        <BackButton fallbackHref="/equipment" />
         <Text style={styles.title}>{t("detail.equipmentNotFound")}</Text>
       </Screen>
     );
@@ -48,7 +52,7 @@ export default function EquipmentDetailScreen() {
 
   return (
     <Screen>
-      <BackButton />
+      <BackButton fallbackHref="/equipment" />
 
       <Panel style={styles.hero}>
         <Pressable
@@ -69,7 +73,7 @@ export default function EquipmentDetailScreen() {
           <Text style={styles.kicker}>{t(`category.${item.category}`).toUpperCase()}</Text>
           <Text style={styles.title}>{item.name}</Text>
           <View style={styles.metaRow}>
-            <Text style={styles.owner}>{item.owner}</Text>
+            <SupplierBadge owner={item.owner} />
             <StatusPill status={item.status} />
           </View>
           <Text style={styles.summary}>{item.summary}</Text>
@@ -81,7 +85,7 @@ export default function EquipmentDetailScreen() {
         {item.specs.map((spec) => (
           <View key={spec.label} style={styles.specRow}>
             <Text style={styles.specLabel}>{spec.label}</Text>
-            <Text style={styles.specValue}>{spec.value}</Text>
+            <Text style={styles.specValue}>{formatMeasurementText(spec.value, unitSystem)}</Text>
           </View>
         ))}
       </Panel>
@@ -164,11 +168,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.md,
     justifyContent: "space-between"
-  },
-  owner: {
-    ...typography.small,
-    color: colors.textDim,
-    flex: 1
   },
   summary: {
     ...typography.body,

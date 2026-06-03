@@ -16,10 +16,10 @@ interface TimelineCardProps {
 }
 
 export function TimelineCard({ item }: TimelineCardProps) {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const { mission, phase, events, equipment } = item;
-  const schedule = getTimelineSchedule(item);
+  const schedule = getTimelineSchedule(item, language);
 
   return (
     <Panel elevated={expanded} style={styles.card}>
@@ -72,7 +72,7 @@ export function TimelineCard({ item }: TimelineCardProps) {
           <Text style={styles.summary}>{mission.summary}</Text>
           <View style={styles.eventList}>
             {events.map((event) => {
-              const eventSchedule = getEventScheduleDisplay(event);
+              const eventSchedule = getEventScheduleDisplay(event, language);
 
               return (
                 <View key={event.id} style={styles.eventRow}>
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     width: 102
   },
   timelineLine: {
-    backgroundColor: "rgba(138, 232, 255, 0.18)",
+    backgroundColor: "rgba(217, 212, 199, 0.14)",
     bottom: -spacing.lg,
     position: "absolute",
     top: -spacing.lg,
@@ -149,8 +149,8 @@ const styles = StyleSheet.create({
   },
   dateBadge: {
     alignItems: "center",
-    backgroundColor: "rgba(138, 232, 255, 0.095)",
-    borderColor: "rgba(138, 232, 255, 0.32)",
+    backgroundColor: "rgba(217, 212, 199, 0.08)",
+    borderColor: "rgba(217, 212, 199, 0.24)",
     borderRadius: radius.sm,
     borderWidth: 1,
     gap: 2,
@@ -297,8 +297,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm
   },
   chip: {
-    backgroundColor: "rgba(199, 184, 255, 0.1)",
-    borderColor: "rgba(199, 184, 255, 0.24)",
+    backgroundColor: "rgba(175, 167, 154, 0.1)",
+    borderColor: "rgba(175, 167, 154, 0.22)",
     borderRadius: 8,
     borderWidth: 1,
     maxWidth: "100%",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sourceConfidenceLabel, uniqueSources } from "./sourceAttribution";
+import { isTechnicalSource, sourceConfidenceLabel, uniqueSources } from "./sourceAttribution";
 import type { SourceLink } from "./types";
 
 describe("source attribution", () => {
@@ -17,6 +17,13 @@ describe("source attribution", () => {
       { label: "LL2", url: "https://ll.thespacedevs.com", confidence: "external" }
     ];
 
-    expect(uniqueSources(sources)).toHaveLength(2);
+    expect(uniqueSources(sources)).toHaveLength(1);
+  });
+
+  it("hides technical schedule providers from user-facing source lists", () => {
+    expect(isTechnicalSource({ label: "Launch Library 2", url: "https://ll.thespacedevs.com/docs", confidence: "external" })).toBe(
+      true
+    );
+    expect(isTechnicalSource({ label: "NASA", url: "https://www.nasa.gov", confidence: "official" })).toBe(false);
   });
 });

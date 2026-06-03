@@ -2,6 +2,21 @@ import { equipment, missionEvents, missions, phases } from "@/data/seed";
 import { getScheduleSortTime } from "@/lib/schedule";
 import type { Equipment, Mission, MissionEvent, Phase, RoadmapFilters, TimelineItem } from "@/lib/types";
 
+export const hiddenRoadmapMissionIds = new Set([
+  "moon-base-phase-one",
+  "clps-cargo-cadence",
+  "phase-two-sustained-stays",
+  "phase-three-lunar-base"
+]);
+
+export const isRoadmapVisibleMission = (mission: Mission): boolean =>
+  mission.status !== "completed" && !hiddenRoadmapMissionIds.has(mission.id);
+
+export const filterRoadmapVisibleEvents = (events: MissionEvent[], missionList: Mission[]): MissionEvent[] => {
+  const missionIds = new Set(missionList.filter(isRoadmapVisibleMission).map((mission) => mission.id));
+  return events.filter((event) => missionIds.has(event.missionId));
+};
+
 export const defaultRoadmapFilters: RoadmapFilters = {
   program: "all",
   status: "all",
@@ -40,7 +55,10 @@ export const filterTimelineItems = (items: TimelineItem[], filters: RoadmapFilte
 
   return items.filter((item) => {
     const matchesProgram = filters.program === "all" || item.mission.programIds.includes(filters.program);
-    const matchesStatus = filters.status === "all" || item.mission.status === filters.status;
+    const matchesStatus =
+      filters.status === "all" ||
+      item.mission.status === filters.status ||
+      (filters.status === "planned" && item.mission.status === "watch");
     const matchesPhase = filters.phaseId === "all" || item.mission.phaseId === filters.phaseId;
     const matchesEquipment =
       filters.equipmentCategory === "all" ||
@@ -68,6 +86,17 @@ export const getNextEvent = (events: MissionEvent[] = missionEvents): MissionEve
   const now = Date.now();
 
   return [...events]
-    .filter((event) => event.startsAt && new Date(event.startsAt).getTime() >= now)
-    .sort((a, b) => new Date(a.startsAt ?? 0).getTime() - new Date(b.startsAt ?? 0).getTime())[0];
+    .filter((event) => {
+      if (event.status === "completed") {
+        return false;
+      }
+
+      if (event.startsAt) {
+        const parsed = new Date(event.startsAt).getTime();
+        return Number.isNaN(parsed) || parsed >= now;
+      }
+
+      return getScheduleSortTime(event) !== Number.MAX_SAFE_INTEGER;
+    })
+    .sort((a, b) => getScheduleSortTime(a) - getScheduleSortTime(b))[0];
 };

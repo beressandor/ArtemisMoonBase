@@ -13,16 +13,21 @@ import { SourceLinks } from "@/components/SourceLinks";
 import { StatusPill } from "@/components/StatusPill";
 import { listEquipment, listMissionEvents, listMissions } from "@/lib/dataClient";
 import { useTranslation } from "@/lib/i18n";
+import { formatScheduleDisplay } from "@/lib/schedule";
 import { colors, spacing, typography } from "@/lib/theme";
 
 export default function MissionDetailScreen() {
-  const { t } = useTranslation();
+  const { language, t } = useTranslation();
   const [imageOpen, setImageOpen] = useState(false);
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data, isLoading } = useQuery({
-    queryKey: ["mission-detail", id],
+    queryKey: ["mission-detail", id, language],
     queryFn: async () => {
-      const [allMissions, allEvents, allEquipment] = await Promise.all([listMissions(), listMissionEvents(), listEquipment()]);
+      const [allMissions, allEvents, allEquipment] = await Promise.all([
+        listMissions(language),
+        listMissionEvents(language),
+        listEquipment(language)
+      ]);
       return { allMissions, allEvents, allEquipment };
     }
   });
@@ -45,7 +50,7 @@ export default function MissionDetailScreen() {
   if (!mission) {
     return (
       <Screen>
-        <BackButton />
+        <BackButton fallbackHref="/roadmap" />
         <Text style={styles.title}>{t("detail.missionNotFound")}</Text>
       </Screen>
     );
@@ -53,7 +58,7 @@ export default function MissionDetailScreen() {
 
   return (
     <Screen>
-      <BackButton />
+      <BackButton fallbackHref="/roadmap" />
 
       <Panel style={styles.hero}>
         <Pressable
@@ -78,7 +83,7 @@ export default function MissionDetailScreen() {
           <Text style={styles.title}>{mission.title}</Text>
           <View style={styles.metaRow}>
             <StatusPill status={mission.status} />
-            <Text style={styles.date}>{mission.dateLabel}</Text>
+            <Text style={styles.date}>{formatScheduleDisplay(mission, undefined, language).primary}</Text>
           </View>
           <Text style={styles.summary}>{mission.summary}</Text>
         </View>
@@ -98,7 +103,7 @@ export default function MissionDetailScreen() {
         <Text style={styles.sectionTitle}>{t("detail.schedule")}</Text>
         {events.map((event) => (
           <View key={event.id} style={styles.eventRow}>
-            <Text style={styles.date}>{event.dateLabel}</Text>
+            <Text style={styles.date}>{formatScheduleDisplay(event, undefined, language).primary}</Text>
             <Text style={styles.eventTitle}>{event.title}</Text>
             <Text style={styles.summary}>{event.summary}</Text>
           </View>

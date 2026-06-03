@@ -1,6 +1,7 @@
 import { Image } from "expo-image";
 import { ImageIcon } from "lucide-react-native";
 import { StyleSheet, View, type ImageStyle, type StyleProp, type ViewStyle } from "react-native";
+import { getMediaImageSource } from "@/lib/mediaAssets";
 import { colors, radius } from "@/lib/theme";
 
 interface MediaImageProps {
@@ -19,7 +20,7 @@ export function MediaImage({ url, style }: MediaImageProps) {
 
   return (
     <Image
-      source={{ uri: url }}
+      source={getMediaImageSource(url)}
       style={[styles.image, style]}
       contentFit="cover"
       transition={180}
